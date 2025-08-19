@@ -1,0 +1,3 @@
+%{
+  "freedom_formatter": {:hex, :freedom_formatter, "2.1.1", "5f33efc2c605ce01c0d1d854ec7cf091c6a6ec846f38de99b1d3fac7775a68bd", [:mix], [], "hexpm", "373b659b9763ca4f4d5fbccb4827b00dbd6c6898d528d5dce91eb60b29ac5fc1"},
+}

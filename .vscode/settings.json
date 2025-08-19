@@ -1,0 +1,4 @@
+{
+    "elixirLS.mixEnv": "dev",
+    "elixirLS.projectDir": "src/ex_chess/"
+}
