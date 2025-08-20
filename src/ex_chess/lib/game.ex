@@ -6,4 +6,10 @@ defmodule ExChess.Game do
         }
   @enforce_keys [:board]
   defstruct [:board]
+
+  @spec new() :: t()
+  def new(),
+    do: %__MODULE__{
+      board: Board.new(),
+    }
 end

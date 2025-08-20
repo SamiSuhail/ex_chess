@@ -7,4 +7,7 @@ defmodule ExChess.Piece do
         }
   @enforce_keys [:type, :color]
   defstruct [:type, :color]
+
+  @spec new(type(), color()) :: ExChess.Piece.t()
+  def new(type, color), do: %__MODULE__{type: type, color: color}
 end
