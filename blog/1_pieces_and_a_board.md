@@ -16,7 +16,7 @@ So, as promised - we're going to have a board. That board is going to have all o
 We'll be going through:
 - 1.0 - Board representation
 - 1.1 - `Game.new()`
-- 1.2 - `Game.move(game, from_square, to_square)`
+- 1.2 - `Game.move(game, move)`
 - 1.3 - Validation - movement patterns (knight, king)
 - 1.4 - `Game.list_legal_moves(game, from_square)`
 - 1.5 - Validation - square cannot be empty
@@ -267,6 +267,146 @@ end
 ```
 
 And with that, the test is green.
+
+## 1.2 - `Game.move(game, move)`
+Okay at this stage we do not care one bit whether ot not the move is valid, we just want to be able to move the pieces on the board.
+
+### Test
+A simple, single move. The white knight should be able to move to `c3` after starting a new game.
+
+```elixir
+  test "move" do
+    Arrange.new_game()
+    |> Arrange.game_move("b1c3")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |rnbqkbnr| 8
+    7 |pppppppp| 7
+    6 |        | 6
+    5 |        | 5
+    4 |        | 4
+    3 |  N     | 3
+    2 |PPPPPPPP| 2
+    1 |R BQKBNR| 1
+      ----------
+       abcdefgh
+    """)
+  end
+```
+
+You'll notice there's a new `Arrange.game_move/2` function. Thanks to that abstraction, our tests can ran independent of the `Game`'s api. If tomorrow I decide to change the way I represent a move, I only need to make changes to my `Arrange` module, and all of the tests can still run.
+
+#### Your turn
+Make the test pass.
+
+### Implementation
+First, we're going to need some way of updating the board's state and a way to represent the moves.
+```elixir
+defmodule ExChess.Board do
+  ...
+  @spec set(t(), Square.t(), Piece.t()) :: t()
+  def set(
+        board = %{},
+        square = %Square{},
+        piece = %Piece{}
+      ) do
+    board |> Map.put(square, piece)
+  end
+
+  @spec unset(t(), Square.t()) :: t()
+  def unset(
+        board = %{},
+        square = %Square{}
+      ) do
+    board |> Map.delete(square)
+  end
+end
+
+defmodule ExChess.Move do
+  alias ExChess.Square
+
+  @type t() :: %__MODULE__{
+          from: Square.t(),
+          to: Square.t(),
+        }
+  @enforce_keys [:from, :to]
+  defstruct [:from, :to]
+
+  @spec new(Square.t(), Square.t()) :: t()
+  def new(from, to), do: %__MODULE__{from: from, to: to}
+end
+```
+
+Now we have everything we need to implement `Game.move`.
+```elixir
+defmodule ExChess.Game do
+  ...
+  @spec move(t(), Move.t()) :: t()
+  def move(
+        game = %__MODULE__{board: board},
+        _move = %Move{from: from, to: to}
+      ) do
+    piece = Board.get(board, from)
+
+    updated_board =
+      board
+      |> Board.set(to, piece)
+      |> Board.unset(from)
+
+    %__MODULE__{game | board: updated_board}
+  end
+end
+```
+
+As simple as that. Get the piece from the board, set it on `to`, and unset it from the it's previous square.
+
+### Testing helpers
+`Arrange.game_move` does some very basic parsing.
+
+```elixir
+defmodule ExChessTest.Arrange do
+  ...
+  def game_move(game, move_text) do
+    move = parse_move(move_text)
+    Game.move(game, move)
+  end
+
+  defp parse_move(<<
+         from_file::binary-size(1),
+         from_rank::binary-size(1),
+         to_file::binary-size(1),
+         to_rank::binary-size(1)
+       >>) do
+    from_square = text_to_square(from_file, from_rank)
+    to_square = text_to_square(to_file, to_rank)
+
+    Move.new(from_square, to_square)
+  end
+
+  defp text_to_square(file, rank),
+    do: Square.new(file_to_index(file), rank_to_index(rank))
+
+  defp file_to_index("a"), do: 0
+  defp file_to_index("b"), do: 1
+  defp file_to_index("c"), do: 2
+  defp file_to_index("d"), do: 3
+  defp file_to_index("e"), do: 4
+  defp file_to_index("f"), do: 5
+  defp file_to_index("g"), do: 6
+  defp file_to_index("h"), do: 7
+
+  defp rank_to_index("1"), do: 0
+  defp rank_to_index("2"), do: 1
+  defp rank_to_index("3"), do: 2
+  defp rank_to_index("4"), do: 3
+  defp rank_to_index("5"), do: 4
+  defp rank_to_index("6"), do: 5
+  defp rank_to_index("7"), do: 6
+  defp rank_to_index("8"), do: 7
+end
+```
+I made use of pattern matching to map the files and ranks to their index. I just really like it. Feel free to replace it with a map if you prefer that.
 
 ## Conclusion
 

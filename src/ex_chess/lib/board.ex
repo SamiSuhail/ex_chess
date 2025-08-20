@@ -45,4 +45,21 @@ defmodule ExChess.Board do
 
   @spec get(t(), Square.t()) :: Piece.t() | nil
   def get(board = %{}, square = %Square{}), do: Map.get(board, square)
+
+  @spec set(t(), Square.t(), Piece.t()) :: t()
+  def set(
+        board = %{},
+        square = %Square{},
+        piece = %Piece{}
+      ) do
+    board |> Map.put(square, piece)
+  end
+
+  @spec unset(t(), Square.t()) :: t()
+  def unset(
+        board = %{},
+        square = %Square{}
+      ) do
+    board |> Map.delete(square)
+  end
 end

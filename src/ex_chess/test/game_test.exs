@@ -19,4 +19,23 @@ defmodule ExChessTest.GameTest do
        abcdefgh
     """)
   end
+
+  test "move" do
+    Arrange.new_game()
+    |> Arrange.game_move("b1c3")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |rnbqkbnr| 8
+    7 |pppppppp| 7
+    6 |        | 6
+    5 |        | 5
+    4 |        | 4
+    3 |  N     | 3
+    2 |PPPPPPPP| 2
+    1 |R BQKBNR| 1
+      ----------
+       abcdefgh
+    """)
+  end
 end
