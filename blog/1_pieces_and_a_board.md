@@ -27,6 +27,67 @@ We'll be going through:
 - 1.6 - Validation - movement patterns (pawn)
 - 1.7 - Validation - movement patterns (bishop, rook, queen)
 
+## 1.0 - Board representation
+
+I went through [chessprogramming.org](https://www.chessprogramming.org/Board_Representation) and looked at other implementations on the BEAM (like erlang's [Binbo](https://github.com/DOBRO/binbo)). Bitboards look like the most optimal solution.
+
+We're not going to do bitboards though, not for the first version anyways. The board module will be quite self-contained, so we should be able to update our representation pretty easily at a later stage.
+
+For clarity's sake, we're starting with a simple map for the board. The key is the board's square, and the value is the piece occupying said square.
+
+TL;DR:
+```elixir
+%Game{
+    board: map(
+        %Square{file: non_neg_integer(), rank: non_neg_integer()},
+        %Piece{
+            type: :p | :r | :n | :b | :q | :k, 
+            color: :white | :black
+        }
+    )
+}
+```
+
+I could have gone for tuples instead of structs for the piece and the square. I usually like structs better for the flexibility in the pattern matching.
+
+The full type definitions below.
+```elixir
+defmodule ExChess.Square do
+  @type t() :: %__MODULE__{
+          file: non_neg_integer(),
+          rank: non_neg_integer(),
+        }
+  @enforce_keys [:file, :rank]
+  defstruct [:file, :rank]
+end
+
+defmodule ExChess.Piece do
+  @type type() :: :p | :r | :n | :b | :q | :k
+  @type color() :: :white | :black
+  @type t() :: %__MODULE__{
+          type: type(),
+          color: color(),
+        }
+  @enforce_keys [:type, :color]
+  defstruct [:type, :color]
+end
+
+defmodule ExChess.Board do
+  alias ExChess.{Square, Piece}
+  @type t() :: %{Square.t() => Piece.t()}
+end
+
+defmodule ExChess.Game do
+  alias ExChess.Board
+
+  @type t() :: %__MODULE__{
+          board: Board.t(),
+        }
+  @enforce_keys [:board]
+  defstruct [:board]
+end
+```
+
 ## Conclusion
 
 ### Up next
