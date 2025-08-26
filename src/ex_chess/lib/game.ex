@@ -21,7 +21,7 @@ defmodule ExChess.Game do
       ) do
     piece = Board.get(board, from)
 
-    if valid_move?(piece, move) do
+    if valid_move?(board, piece, move) do
       updated_board =
         board
         |> Board.set(to, piece)
@@ -33,9 +33,12 @@ defmodule ExChess.Game do
     end
   end
 
-  defp valid_move?(%Piece{type: piece_type}, move = %Move{}) do
-    patterns(piece_type)
-    |> valid_move_pattern?(move)
+  defp valid_move?(board = %{}, piece = %Piece{}, move = %Move{}) do
+    target_piece = Board.get(board, move.to)
+
+    not Piece.same_color?(piece, target_piece) and
+      patterns(piece.type)
+      |> valid_move_pattern?(move)
   end
 
   @king_patterns [

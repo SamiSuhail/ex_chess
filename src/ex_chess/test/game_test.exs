@@ -44,4 +44,10 @@ defmodule ExChessTest.GameTest do
     |> Arrange.game_move("b1b3")
     |> Assert.invalid_move()
   end
+
+  test "invalid move - cannot take own piece" do
+    Arrange.new_game()
+    |> Arrange.game_move("b1d2")
+    |> Assert.invalid_move()
+  end
 end

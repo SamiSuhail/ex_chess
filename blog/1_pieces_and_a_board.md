@@ -18,10 +18,11 @@ We'll be going through:
 - 1.1 - `Game.new()`
 - 1.2 - `Game.move(game, move)`
 - 1.3 - Validation - movement patterns (knight, king)
-- 1.4 - `Game.list_legal_moves(game, from_square)`
-- 1.5 - Validation - square cannot be empty
-- 1.6 - Validation - movement patterns (pawn)
-- 1.7 - Validation - movement patterns (bishop, rook, queen)
+- 1.4 - Validation - cannot take own piece
+- 1.5 - `Game.list_legal_moves(game, from_square)`
+- 1.6 - Validation - square cannot be empty
+- 1.7 - Validation - movement patterns (pawn)
+- 1.8 - Validation - movement patterns (bishop, rook, queen)
 
 ## 1.0 - Board representation
 
@@ -492,6 +493,43 @@ And of course, a minor addition to the `Assert` module.
 defmodule ExChessTest.Assert do
   ...
   def invalid_move(error), do: assert(error == {:error, :invalid_move})
+end
+```
+
+## 1.4 - Validation - cannot take own piece
+This one is simple. A move is only valid if we're not trying to take our own piece.
+
+### Test
+```elixir
+  test "invalid move - cannot take own piece" do
+    Arrange.new_game()
+    |> Arrange.game_move("b1d2")
+    |> Assert.invalid_move()
+  end
+```
+
+### Implementation
+We're just adding an additional condition to `valid_move?`. We want to check what piece is on the target square, and if it is the same color as the piece we're moving, that move will be considered invalid. If the target square is empty, the move is valid.
+
+To do that, we'll need to add an additional parameter - the board. We will be using that to check the contents of the target square.
+
+```elixir
+defmodule ExChess.Piece do
+  ...
+  @spec same_color?(t() | nil, t() | nil) :: boolean()
+  def same_color?(%__MODULE__{color: color}, %__MODULE__{color: color}), do: true
+  def same_color?(_, _), do: false
+end
+
+defmodule ExChess.Game do
+  ...
+  defp valid_move?(board = %{}, piece = %Piece{}, move = %Move{}) do
+    target_piece = Board.get(board, move.to)
+
+    not Piece.same_color?(piece, target_piece) and
+      patterns(piece.type)
+      |> valid_move_pattern?(move)
+  end
 end
 ```
 
