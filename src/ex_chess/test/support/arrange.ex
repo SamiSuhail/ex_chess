@@ -9,19 +9,25 @@ defmodule ExChessTest.Arrange do
   end
 
   defp parse_move(<<
-         from_file::binary-size(1),
-         from_rank::binary-size(1),
-         to_file::binary-size(1),
-         to_rank::binary-size(1)
+         from::binary-size(2),
+         to::binary-size(2)
        >>) do
-    from_square = text_to_square(from_file, from_rank)
-    to_square = text_to_square(to_file, to_rank)
+    from_square = text_to_square(from)
+    to_square = text_to_square(to)
 
     Move.new(from_square, to_square)
   end
 
-  defp text_to_square(file, rank),
-    do: Square.new(file_to_index(file), rank_to_index(rank))
+  def game_list_legal_moves(game, square_text) do
+    square = text_to_square(square_text)
+    Game.list_legal_moves(game, square)
+  end
+
+  defp text_to_square(<<
+         file::binary-size(1),
+         rank::binary-size(1)
+       >>),
+       do: Square.new(file_to_index(file), rank_to_index(rank))
 
   defp file_to_index("a"), do: 0
   defp file_to_index("b"), do: 1

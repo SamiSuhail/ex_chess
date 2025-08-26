@@ -33,6 +33,19 @@ defmodule ExChess.Game do
     end
   end
 
+  @spec list_legal_moves(t(), Square.t()) :: [Square.t()]
+  def list_legal_moves(%__MODULE__{board: board}, from_square = %Square{}) do
+    piece = Board.get(board, from_square)
+
+    patterns(piece)
+    |> Enum.map(fn {file_shift, rank_shift} ->
+      Square.shift(from_square, file_shift, rank_shift)
+    end)
+    |> Enum.filter(fn to_square ->
+      valid_move?(board, piece, Move.new(from_square, to_square))
+    end)
+  end
+
   defp valid_move?(_board = %{}, _piece = nil, _move = %Move{}), do: false
 
   defp valid_move?(_board = %{}, _piece, _move = %Move{to: to})
