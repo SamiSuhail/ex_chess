@@ -19,10 +19,12 @@ We'll be going through:
 - 1.2 - `Game.move(game, move)`
 - 1.3 - Validation - movement patterns (knight, king)
 - 1.4 - Validation - cannot take own piece
-- 1.5 - `Game.list_legal_moves(game, from_square)`
-- 1.6 - Validation - square cannot be empty
-- 1.7 - Validation - movement patterns (pawn)
-- 1.8 - Validation - movement patterns (bishop, rook, queen)
+- 1.5 - Validation - cannot move empty square
+- 1.6 - Validation - cannot move outside board bounds
+- 1.7 - `Game.list_legal_moves(game, from_square)`
+- 1.8 - Validation - square cannot be empty
+- 1.9 - Validation - movement patterns (pawn)
+- 1.10 - Validation - movement patterns (bishop, rook, queen)
 
 ## 1.0 - Board representation
 
@@ -537,6 +539,28 @@ end
 At this stage I was going through the code and decided to do a minor refactor. Moved some of the logic into the `Square` module (shifting a square, comparing two squares' locations) and slightly upgraded the private `Game.patterns` function to work directly with the `Piece` struct and handle `nil`s.
 
 If you want to take a look at the code check out the commits of [this PR](https://github.com/SamiSuhail/ex_chess/pull/1).
+
+## 1.5 - Validation - cannot move empty square
+If the selected square has no piece in it, we want a validation error.
+
+### Test
+```elixir
+  test "invalid move - cannot move empty square" do
+    Arrange.new_game()
+    |> Arrange.game_move("b3b4")
+    |> Assert.invalid_move()
+  end
+```
+
+### Implementation
+```elixir
+defmodule ExChess.Game do
+  ...
+  defp valid_move?(_board = %{}, _piece = nil, _move = %Move{}), do: false
+  ...
+end
+```
+As easy as that.
 
 ## Conclusion
 

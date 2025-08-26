@@ -33,6 +33,8 @@ defmodule ExChess.Game do
     end
   end
 
+  defp valid_move?(_board = %{}, _piece = nil, _move = %Move{}), do: false
+
   defp valid_move?(board = %{}, piece = %Piece{}, move = %Move{}) do
     target_piece = Board.get(board, move.to)
 
