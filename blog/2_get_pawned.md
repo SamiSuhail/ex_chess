@@ -27,11 +27,10 @@ Today sounds like it's all about pawns but it really isn't. If phase one was us 
 - 2.2 - Extensive testing
 - 2.3 - Pawns
   - 2.3.1 - Advancing
-  - 2.3.2 - Advancing two squares
-  - 2.3.3 - Validation - pawn cannot advance two squares after moving
-  - 2.3.4 - Validation - pawn cannot advance if path is blocked
-  - 2.3.5 - Taking
-  - 2.3.6 - Validation - pawn cannot move diagonally when not taking
+  - 2.3.2 - Validation - pawn cannot advance two squares after moving
+  - 2.3.3 - Validation - pawn cannot advance if path is blocked
+  - 2.3.4 - Taking
+  - 2.3.5 - Validation - pawn cannot move diagonally when not taking
 - 2.4 - Refactor - Movement types
 
 ## 2.1 - `Game.list_legal_moves(game, from_square)`
@@ -197,3 +196,89 @@ defmodule ExChessTest.KingTest do
   end
 end
 ```
+
+## 2.3 - Pawns
+For this first implementation of the pawns we are going to ignore special moves like en passant and promotion. We're instead going to implement just the basic set of moves: advancing one or two squares, and taking diagonally.
+
+### 2.3.1 - Advancing
+The very first iteration will just make sure the pawns can advance one or two squares.
+
+#### Test
+```elixir
+defmodule ExChessTest.PawnTest do
+  use ExUnit.Case
+  alias ExChessTest.{Arrange, Assert}
+
+  test "advance" do
+    Arrange.new_game()
+    |> Arrange.game_move("a2a3")
+    |> Arrange.game_move("a7a6")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |rnbqkbnr| 8
+    7 | ppppppp| 7
+    6 |p       | 6
+    5 |        | 5
+    4 |        | 4
+    3 |P       | 3
+    2 | PPPPPPP| 2
+    1 |RNBQKBNR| 1
+      ----------
+       abcdefgh
+    """)
+  end
+
+  test "advance two ranks" do
+    Arrange.new_game()
+    |> Arrange.game_move("a2a4")
+    |> Arrange.game_move("a7a5")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |rnbqkbnr| 8
+    7 | ppppppp| 7
+    6 |        | 6
+    5 |p       | 5
+    4 |P       | 4
+    3 |        | 3
+    2 | PPPPPPP| 2
+    1 |RNBQKBNR| 1
+      ----------
+       abcdefgh
+    """)
+  end
+end
+```
+
+#### Implementation
+
+All that's needed is to extend `Game.patterns/1`.
+```elixir
+defmodule ExChess.Game do
+  ...
+  @pawn_patterns_white [
+    {0, 1},
+    {0, 2},
+  ]
+
+  @pawn_patterns_black [
+    {0, -1},
+    {0, -2},
+  ]
+  ...
+  defp patterns(%Piece{type: :p, color: :white}), do: @pawn_patterns_white
+  defp patterns(%Piece{type: :p, color: :black}), do: @pawn_patterns_black
+  ...
+end
+```
+
+
+
+
+
+  - 2.3.2 - Validation - pawn cannot advance two squares after moving
+  - 2.3.3 - Validation - pawn cannot advance if path is blocked
+  - 2.3.4 - Taking
+  - 2.3.5 - Validation - pawn cannot move diagonally when not taking
+- 2.4 - Refactor - Movement types

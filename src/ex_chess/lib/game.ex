@@ -82,8 +82,20 @@ defmodule ExChess.Game do
     {2, 1},
   ]
 
+  @pawn_patterns_white [
+    {0, 1},
+    {0, 2},
+  ]
+
+  @pawn_patterns_black [
+    {0, -1},
+    {0, -2},
+  ]
+
   defp patterns(%Piece{type: :k}), do: @king_patterns
   defp patterns(%Piece{type: :n}), do: @knight_patterns
+  defp patterns(%Piece{type: :p, color: :white}), do: @pawn_patterns_white
+  defp patterns(%Piece{type: :p, color: :black}), do: @pawn_patterns_black
   defp patterns(_), do: []
 
   defp valid_move_pattern?(patterns, %Move{from: from, to: to}) do
