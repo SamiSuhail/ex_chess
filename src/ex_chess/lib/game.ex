@@ -35,6 +35,10 @@ defmodule ExChess.Game do
 
   defp valid_move?(_board = %{}, _piece = nil, _move = %Move{}), do: false
 
+  defp valid_move?(_board = %{}, _piece, _move = %Move{to: to})
+       when to.file not in 0..7 or to.rank not in 0..7,
+       do: false
+
   defp valid_move?(board = %{}, piece = %Piece{}, move = %Move{}) do
     target_piece = Board.get(board, move.to)
 

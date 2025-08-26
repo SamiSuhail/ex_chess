@@ -56,4 +56,10 @@ defmodule ExChessTest.GameTest do
     |> Arrange.game_move("b3b4")
     |> Assert.invalid_move()
   end
+
+  test "invalid move - cannot move outside board bounds" do
+    Arrange.new_game()
+    |> Arrange.game_move("b1d0")
+    |> Assert.invalid_move()
+  end
 end

@@ -562,6 +562,36 @@ end
 ```
 As easy as that.
 
+## 1.6 - Validation - cannot move outside board bounds
+Last but not least, we want to make sure that the move is not outside of the board's 8×8 square.
+
+### Test
+```elixir
+  test "invalid move - cannot move outside board bounds" do
+    Arrange.new_game()
+    |> Arrange.game_move("b1d0")
+    |> Assert.invalid_move()
+  end
+```
+
+If you copied my previous implementation of `Arrange.game_move/2` you'll need to update it to accomodate for this new test.
+
+### Implementation
+To get this passing we just need a new function head for `Game.valid_move?/3`
+```elixir
+defmodule ExChess.Game do
+  ...
+  defp valid_move?(_board = %{}, _piece, _move = %Move{to: to})
+       when to.file not in 0..7 or to.rank not in 0..7,
+       do: false
+  ...
+end
+```
+
+And of course, update `Arrange.rank_to_index/1`.
+```elixir
+  defp rank_to_index(rank_text), do: String.to_integer(rank_text) - 1
+```
 ## Conclusion
 
 ### Up next

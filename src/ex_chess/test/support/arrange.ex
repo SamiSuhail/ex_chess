@@ -32,12 +32,5 @@ defmodule ExChessTest.Arrange do
   defp file_to_index("g"), do: 6
   defp file_to_index("h"), do: 7
 
-  defp rank_to_index("1"), do: 0
-  defp rank_to_index("2"), do: 1
-  defp rank_to_index("3"), do: 2
-  defp rank_to_index("4"), do: 3
-  defp rank_to_index("5"), do: 4
-  defp rank_to_index("6"), do: 5
-  defp rank_to_index("7"), do: 6
-  defp rank_to_index("8"), do: 7
+  defp rank_to_index(rank_text), do: String.to_integer(rank_text) - 1
 end
