@@ -66,3 +66,134 @@ I won't post the changes to the `Arrange` and `Assert` module in here, but you c
     end)
   end
 ```
+
+## 2.2 - Extensive testing
+Thanks to the new `Game.list_legal_moves/2` function, it is way easier to test for multiple movement patterns at once. However if we want to make maximal use of it, we're gonna want to also make setting up the board easier by adding a new `Arrange.game_board/2` function.
+
+We will also make use of parameterized testing thanks to `@tag` attributes and for comprehensions.
+
+### Test
+If you want to check out the implementation of `Arrange.game_board/2` I invite you to check out the PR linked above. Once that's added in, all below tests should be passing.
+
+```elixir
+defmodule ExChessTest.KnightTest do
+  use ExUnit.Case
+  alias ExChessTest.{Arrange, Assert}
+
+  @scenarios [
+    {
+      "default",
+      """
+         abcdefgh
+        ----------
+      8 |       k| 8
+      7 |        | 7
+      6 |        | 6
+      5 |        | 5
+      4 |   N    | 4
+      3 |        | 3
+      2 |        | 2
+      1 |       K| 1
+        ----------
+         abcdefgh
+      """
+    },
+    {
+      "can jump over pieces",
+      """
+         abcdefgh
+        ----------
+      8 |       k| 8
+      7 |        | 7
+      6 |        | 6
+      5 |  ppp   | 5
+      4 |  pNp   | 4
+      3 |  ppp   | 3
+      2 |        | 2
+      1 |       K| 1
+        ----------
+         abcdefgh
+      """
+    },
+    {
+      "taking",
+      """
+         abcdefgh
+        ----------
+      8 |       k| 8
+      7 |        | 7
+      6 |  p p   | 6
+      5 | p   p  | 5
+      4 |   N    | 4
+      3 | p   p  | 3
+      2 |  p p   | 2
+      1 |       K| 1
+        ----------
+         abcdefgh
+      """
+    },
+  ]
+
+  for {scenario_name, board} <- @scenarios do
+    @tag board: board
+    test "list legal moves - #{scenario_name}", %{board: board} do
+      Arrange.new_game()
+      |> Arrange.game_board(board)
+      |> Arrange.game_list_legal_moves("d4")
+      |> Assert.legal_moves(["b3", "b5", "c2", "c6", "e2", "e6", "f3", "f5"])
+    end
+  end
+end
+
+defmodule ExChessTest.KingTest do
+  use ExUnit.Case
+  alias ExChessTest.{Arrange, Assert}
+
+  @scenarios [
+    {
+      "default",
+      """
+         abcdefgh
+        ----------
+      8 |       k| 8
+      7 |        | 7
+      6 |        | 6
+      5 |        | 5
+      4 |   K    | 4
+      3 |        | 3
+      2 |        | 2
+      1 |        | 1
+        ----------
+         abcdefgh
+      """
+    },
+    {
+      "taking",
+      """
+         abcdefgh
+        ----------
+      8 |       k| 8
+      7 |        | 7
+      6 |        | 6
+      5 |  ppp   | 5
+      4 |   K    | 4
+      3 |  ppp   | 3
+      2 |        | 2
+      1 |        | 1
+        ----------
+         abcdefgh
+      """
+    },
+  ]
+
+  for {scenario_name, board} <- @scenarios do
+    @tag board: board
+    test "list legal moves - #{scenario_name}", %{board: board} do
+      Arrange.new_game()
+      |> Arrange.game_board(board)
+      |> Arrange.game_list_legal_moves("d4")
+      |> Assert.legal_moves(["c3", "c4", "c5", "d3", "d5", "e3", "e4", "e5"])
+    end
+  end
+end
+```
