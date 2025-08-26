@@ -533,6 +533,11 @@ defmodule ExChess.Game do
 end
 ```
 
+## Refactor
+At this stage I was going through the code and decided to do a minor refactor. Moved some of the logic into the `Square` module (shifting a square, comparing two squares' locations) and slightly upgraded the private `Game.patterns` function to work directly with the `Piece` struct and handle `nil`s.
+
+If you want to take a look at the code check out the commits of [this PR](https://github.com/SamiSuhail/ex_chess/pull/1).
+
 ## Conclusion
 
 ### Up next
