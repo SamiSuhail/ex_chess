@@ -21,10 +21,6 @@ We'll be going through:
 - 1.4 - Validation - cannot take own piece
 - 1.5 - Validation - cannot move empty square
 - 1.6 - Validation - cannot move outside board bounds
-- 1.7 - `Game.list_legal_moves(game, from_square)`
-- 1.8 - Validation - square cannot be empty
-- 1.9 - Validation - movement patterns (pawn)
-- 1.10 - Validation - movement patterns (bishop, rook, queen)
 
 ## 1.0 - Board representation
 
@@ -593,6 +589,21 @@ And of course, update `Arrange.rank_to_index/1`.
   defp rank_to_index(rank_text), do: String.to_integer(rank_text) - 1
 ```
 ## Conclusion
+We achieved a lot today. We've picked our board representation, started a new game with all the pieces on it, and even moved our knight.
+We also added the very first set of validations to determine whether a move is legal or not.
+
+It's a good starting point, but we still have a lot to do.
 
 ### Up next
+By the end of next session our users will be able to list all of the legal moves for a piece, and they will be able to advance their pawns one or two squares, and take diagonally.
 
+- 2.1 - `Game.list_legal_moves(game, from_square)` 
+- 2.2 - Extensive testing
+- 2.3 - Pawns
+  - 2.3.1 - Advancing
+  - 2.3.2 - Advancing two squares
+  - 2.3.3 - Validation - pawn cannot advance two squares after moving
+  - 2.3.4 - Validation - pawn cannot advance if path is blocked
+  - 2.3.5 - Taking
+  - 2.3.6 - Validation - pawn cannot move diagonally when not taking
+- 2.4 - Refactor - Movement types
