@@ -408,6 +408,93 @@ end
 ```
 I made use of pattern matching to map the files and ranks to their index. I just really like it. Feel free to replace it with a map if you prefer that.
 
+## 1.3 - Validation - movement patterns (knight, king)
+This is the first bit of validation we're adding - we don't want our pieces teleporting left and right on the board.
+
+We're starting with the two easiest ones to implement. The knight and the king.
+
+### Test
+Okay so we already have a scenario checking whether the knight can move a certain way. Now let's add a test that there are ways in which it cannot move.
+
+```elixir
+  test "invalid move - movement pattern" do
+    Arrange.new_game()
+    |> Arrange.game_move("b1b3")
+    |> Assert.invalid_move()
+  end
+```
+
+### Implementation
+I've actally gone through this code multiple times, and the initial implementation will be a quick and dirty one that we will refactor in a later step. If I were to structure the code in a certain way before you had the context for it that would not feel natural.
+
+For the movements that are allowed to a certain piece, I've decided to represent them as a tuple with 2 integers representing the shift on the file and rank respectively.
+
+So all I am doing now is ensuring that the input move matches one of the movement patterns for that piece.
+```elixir
+defmodule ExChess.Game do
+  ...
+  @spec move(t(), Move.t()) :: t() | error()
+  def move(
+        game = %__MODULE__{board: board},
+        move = %Move{from: from, to: to}
+      ) do
+    piece = Board.get(board, from)
+
+    if valid_move?(piece, move) do
+      # update board
+    else
+      {:error, :invalid_move}
+    end
+  end
+
+  defp valid_move?(%Piece{type: piece_type}, move = %Move{}) do
+    patterns(piece_type)
+    |> valid_move_pattern?(move)
+  end
+
+  @king_patterns [
+    {-1, -1},
+    {-1, 0},
+    {-1, 1},
+    {0, -1},
+    {0, 1},
+    {1, -1},
+    {1, 0},
+    {1, 1},
+  ]
+
+  @knight_patterns [
+    {-2, -1},
+    {-2, 1},
+    {-1, -2},
+    {-1, 2},
+    {1, -2},
+    {1, 2},
+    {2, -1},
+    {2, 1},
+  ]
+
+  defp patterns(:k), do: @king_patterns
+  defp patterns(:n), do: @knight_patterns
+
+  defp valid_move_pattern?(patterns, %Move{from: from, to: to}) do
+    patterns
+    |> Enum.any?(fn {file_shift, rank_shift} ->
+      from.file + file_shift == to.file and
+        from.rank + rank_shift == to.rank
+    end)
+  end
+end
+```
+
+And of course, a minor addition to the `Assert` module.
+```elixir
+defmodule ExChessTest.Assert do
+  ...
+  def invalid_move(error), do: assert(error == {:error, :invalid_move})
+end
+```
+
 ## Conclusion
 
 ### Up next

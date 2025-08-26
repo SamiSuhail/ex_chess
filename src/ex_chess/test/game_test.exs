@@ -38,4 +38,10 @@ defmodule ExChessTest.GameTest do
        abcdefgh
     """)
   end
+
+  test "invalid move - movement pattern" do
+    Arrange.new_game()
+    |> Arrange.game_move("b1b3")
+    |> Assert.invalid_move()
+  end
 end

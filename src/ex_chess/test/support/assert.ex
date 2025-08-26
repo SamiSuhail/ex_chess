@@ -44,4 +44,6 @@ defmodule ExChessTest.Assert do
   defp piece_label(%Piece{type: :q, color: :black}), do: "q"
   defp piece_label(%Piece{type: :k, color: :white}), do: "K"
   defp piece_label(%Piece{type: :k, color: :black}), do: "k"
+
+  def invalid_move(error), do: assert(error == {:error, :invalid_move})
 end
