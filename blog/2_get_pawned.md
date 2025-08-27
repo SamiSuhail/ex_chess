@@ -321,9 +321,143 @@ A very simple addition to `Game.valid_move?/3`. We make sure to now also check p
 ```
 All we need to do is ensure that either we are not moving two ranks, or we are on the starting rank. And just like that, our tests are now passing.
 
+### 2.3.3 - Validation - pawn cannot advance if path is blocked
+Make sure to check both the square right in front of the pawn, and the square two ranks down in case of a two square advance.
 
+#### Test
+There are three scenarios we want to check.
+```elixir
+  test "validation - pawn cannot advance when path is blocked" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |rnbqkbnr| 8
+      7 |ppppppp | 7
+      6 |P       | 6
+      5 |        | 5
+      4 |        | 4
+      3 |       p| 3
+      2 | PPPPPPP| 2
+      1 |RNBQKBNR| 1
+        ----------
+         abcdefgh
+      """)
 
-  - 2.3.3 - Validation - pawn cannot advance if path is blocked
+    # white
+    Arrange.game_move(game, "h2h3")
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_move(game, "b2b3")
+    |> Arrange.game_move("a7a6")
+    |> Assert.invalid_move()
+  end
+
+  test "validation - pawn cannot advance two ranks when square in front is occupied" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |rnbqkbnr| 8
+      7 |ppppppp | 7
+      6 |P       | 6
+      5 |        | 5
+      4 |        | 4
+      3 |       p| 3
+      2 | PPPPPPP| 2
+      1 |RNBQKBNR| 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_move(game, "h2h4")
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_move(game, "b2b3")
+    |> Arrange.game_move("a7a5")
+    |> Assert.invalid_move()
+  end
+
+  test "validation - pawn cannot advance two ranks when square two ranks in front is occupied" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |rnbqkbnr| 8
+      7 |ppppppp | 7
+      6 |        | 6
+      5 |P       | 5
+      4 |       p| 4
+      3 |        | 3
+      2 | PPPPPPP| 2
+      1 |RNBQKBNR| 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_move(game, "h2h4")
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_move(game, "b2b3")
+    |> Arrange.game_move("a7a5")
+    |> Assert.invalid_move()
+  end
+```
+
+#### Implementation
+We're completely rewriting our implementation for the pawn rules. It now needs to also take in the board as an argument.
+
+The functionality is basically:
+- make sure the square in front of the pawn is empty
+- if the move is a 2 square advance, make sure we're on the starting rank and the target square is empty
+
+We've also added a new `Board.square_empty?/2` function.
+```elixir
+defmodule ExChess.Game do
+  ...
+  @spec square_empty?(t(), Square.t()) :: boolean()
+  def square_empty?(board = %{}, square = %Square{}),
+    do: is_nil(get(board, square))
+  ...
+end
+
+defmodule ExChess.Game do
+  ...
+  defp piece_rules_followed?(
+         %Piece{type: :p, color: color},
+         %Move{from: from, to: to},
+         board = %{}
+       ) do
+    direction = direction(color)
+
+    is_front_square_empty? =
+      Board.square_empty?(board, Square.shift(from, 0, direction))
+
+    is_single_rank_advance? = abs(to.rank - from.rank) == 1
+
+    can_advance_two_ranks? =
+      from.rank in [1, 6] and
+        Board.square_empty?(board, Square.shift(from, 0, 2 * direction))
+
+    is_front_square_empty? and
+      (is_single_rank_advance? or can_advance_two_ranks?)
+  end
+
+  defp piece_rules_followed?(%Piece{}, %Move{}, %{}), do: true
+
+  defp direction(:white), do: 1
+  defp direction(:black), do: -1
+end
+```
+
   - 2.3.4 - Taking
   - 2.3.5 - Validation - pawn cannot move diagonally when not taking
 - 2.4 - Refactor - Movement types

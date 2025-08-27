@@ -58,7 +58,7 @@ defmodule ExChess.Game do
     not Piece.same_color?(piece, target_piece) and
       patterns(piece)
       |> valid_move_pattern?(move) and
-      piece_rules_followed?(piece, move)
+      piece_rules_followed?(piece, move, board)
   end
 
   @king_patterns [
@@ -107,10 +107,28 @@ defmodule ExChess.Game do
     end)
   end
 
-  defp piece_rules_followed?(%Piece{type: :p}, move = %Move{}) do
-    (move.to.rank - move.from.rank) not in [-2, 2] or
-      move.from.rank in [1, 6]
+  defp piece_rules_followed?(
+         %Piece{type: :p, color: color},
+         %Move{from: from, to: to},
+         board = %{}
+       ) do
+    direction = direction(color)
+
+    is_front_square_empty? =
+      Board.square_empty?(board, Square.shift(from, 0, direction))
+
+    is_single_rank_advance? = abs(to.rank - from.rank) == 1
+
+    can_advance_two_ranks? =
+      from.rank in [1, 6] and
+        Board.square_empty?(board, Square.shift(from, 0, 2 * direction))
+
+    is_front_square_empty? and
+      (is_single_rank_advance? or can_advance_two_ranks?)
   end
 
-  defp piece_rules_followed?(%Piece{}, %Move{}), do: true
+  defp piece_rules_followed?(%Piece{}, %Move{}, %{}), do: true
+
+  defp direction(:white), do: 1
+  defp direction(:black), do: -1
 end
