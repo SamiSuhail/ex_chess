@@ -273,11 +273,56 @@ defmodule ExChess.Game do
 end
 ```
 
+### 2.3.2 - Validation - pawn cannot advance two squares after moving
+
+#### Test
+We're going to check that both black and white can no longer advance two squares with a pawn once it's moved from the starting rank.
+
+For the second assertion, we still make sure to first move a white piece. We don't want old tests breaking later when we add turn validation.
+```elixir
+  test "validation - pawn cannot advance two squares after moving" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_move("a2a3")
+      |> Arrange.game_move("a7a6")
+
+    # white
+    Arrange.game_move(game, "a3a5")
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_move(game, "b2b3")
+    |> Arrange.game_move("a6a4")
+    |> Assert.invalid_move()
+  end
+```
+
+#### Implementation
+A very simple addition to `Game.valid_move?/3`. We make sure to now also check piece-specific rules. We're also adding an extra function head - if a piece does not have any specific rules specified, then the move is considered valid.
+
+```diff
+  defp valid_move?(board = %{}, piece = %Piece{}, move = %Move{}) do
+    target_piece = Board.get(board, move.to)
+
+    not Piece.same_color?(piece, target_piece) and
+      patterns(piece)
+-     |> valid_move_pattern?(move)
++     |> valid_move_pattern?(move) and
++     piece_rules_followed?(piece, move)
+  end
+```
+```elixir
+  defp piece_rules_followed?(%Piece{type: :p}, move = %Move{}) do
+    (move.to.rank - move.from.rank) not in [-2, 2] or
+      move.from.rank in [1, 6]
+  end
+
+  defp piece_rules_followed?(%Piece{}, %Move{}), do: true
+```
+All we need to do is ensure that either we are not moving two ranks, or we are on the starting rank. And just like that, our tests are now passing.
 
 
 
-
-  - 2.3.2 - Validation - pawn cannot advance two squares after moving
   - 2.3.3 - Validation - pawn cannot advance if path is blocked
   - 2.3.4 - Taking
   - 2.3.5 - Validation - pawn cannot move diagonally when not taking

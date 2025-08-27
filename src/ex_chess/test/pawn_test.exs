@@ -41,4 +41,20 @@ defmodule ExChessTest.PawnTest do
        abcdefgh
     """)
   end
+
+  test "validation - pawn cannot advance two squares after moving" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_move("a2a3")
+      |> Arrange.game_move("a7a6")
+
+    # white
+    Arrange.game_move(game, "a3a5")
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_move(game, "b2b3")
+    |> Arrange.game_move("a6a4")
+    |> Assert.invalid_move()
+  end
 end
