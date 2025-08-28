@@ -141,4 +141,38 @@ defmodule ExChessTest.PawnTest do
     |> Arrange.game_move("a7a5")
     |> Assert.invalid_move()
   end
+
+  test "taking" do
+    Arrange.new_game()
+    |> Arrange.game_board("""
+       abcdefgh
+      ----------
+    8 |rnbqkbnr| 8
+    7 |pppp ppp| 7
+    6 |   P    | 6
+    5 |        | 5
+    4 |        | 4
+    3 |    p   | 3
+    2 |PPP PPPP| 2
+    1 |RNBQKBNR| 1
+      ----------
+       abcdefgh
+    """)
+    |> Arrange.game_move("f2e3")
+    |> Arrange.game_move("c7d6")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |rnbqkbnr| 8
+    7 |pp p ppp| 7
+    6 |   p    | 6
+    5 |        | 5
+    4 |        | 4
+    3 |    P   | 3
+    2 |PPP P PP| 2
+    1 |RNBQKBNR| 1
+      ----------
+       abcdefgh
+    """)
+  end
 end

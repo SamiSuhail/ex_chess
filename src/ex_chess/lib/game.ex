@@ -86,11 +86,15 @@ defmodule ExChess.Game do
   @pawn_patterns_white [
     {0, 1},
     {0, 2},
+    {1, 1},
+    {-1, 1},
   ]
 
   @pawn_patterns_black [
     {0, -1},
     {0, -2},
+    {1, -1},
+    {-1, -1},
   ]
 
   defp patterns(%Piece{type: :k}), do: @king_patterns
@@ -114,17 +118,21 @@ defmodule ExChess.Game do
        ) do
     direction = direction(color)
 
-    is_front_square_empty? =
-      Board.square_empty?(board, Square.shift(from, 0, direction))
+    cond do
+      # taking
+      from.file != to.file ->
+        true
 
-    is_single_rank_advance? = abs(to.rank - from.rank) == 1
+      # one rank advance
+      abs(to.rank - from.rank) == 1 ->
+        Board.square_empty?(board, to)
 
-    can_advance_two_ranks? =
-      from.rank in [1, 6] and
-        Board.square_empty?(board, Square.shift(from, 0, 2 * direction))
-
-    is_front_square_empty? and
-      (is_single_rank_advance? or can_advance_two_ranks?)
+      # two rank advance
+      true ->
+        from.rank in [1, 6] and
+          Board.square_empty?(board, to) and
+          Board.square_empty?(board, from |> Square.shift(0, direction))
+    end
   end
 
   defp piece_rules_followed?(%Piece{}, %Move{}, %{}), do: true

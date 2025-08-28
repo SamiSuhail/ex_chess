@@ -458,6 +458,100 @@ defmodule ExChess.Game do
 end
 ```
 
-  - 2.3.4 - Taking
+### 2.3.4 - Taking
+The pawn can take pieces diagonally in front of them.
+
+#### Test
+```elixir
+  test "taking" do
+    Arrange.new_game()
+    |> Arrange.game_board("""
+       abcdefgh
+      ----------
+    8 |rnbqkbnr| 8
+    7 |pppp ppp| 7
+    6 |   P    | 6
+    5 |        | 5
+    4 |        | 4
+    3 |    p   | 3
+    2 |PPP PPPP| 2
+    1 |RNBQKBNR| 1
+      ----------
+       abcdefgh
+    """)
+    |> Arrange.game_move("f2e3")
+    |> Arrange.game_move("c7d6")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |rnbqkbnr| 8
+    7 |pp p ppp| 7
+    6 |   p    | 6
+    5 |        | 5
+    4 |        | 4
+    3 |    P   | 3
+    2 |PPP P PP| 2
+    1 |RNBQKBNR| 1
+      ----------
+       abcdefgh
+    """)
+  end
+```
+
+#### Implementation
+First, there are new patterns that we need to support.
+```diff
+defmodule ExChess.Game do
+  ...
+  @pawn_patterns_white [
+    {0, 1},
+    {0, 2},
++   {1, 1},
++   {-1, 1},
+  ]
+
+  @pawn_patterns_black [
+    {0, -1},
+    {0, -2},
++   {1, -1},
++   {-1, -1},
+  ]
+  ...
+end
+```
+
+And let's once again rework our pawn rules.
+```elixir
+defmodule ExChess.Game do
+  ...
+  defp piece_rules_followed?(
+         %Piece{type: :p, color: color},
+         %Move{from: from, to: to},
+         board = %{}
+       ) do
+    direction = direction(color)
+
+    cond do
+      # taking
+      from.file != to.file ->
+        true
+
+      # one rank advance
+      abs(to.rank - from.rank) == 1 ->
+        Board.square_empty?(board, to)
+
+      # two rank advance
+      true ->
+        from.rank in [1, 6] and
+          Board.square_empty?(board, to) and
+          Board.square_empty?(board, from |> Square.shift(0, direction))
+    end
+  end
+  ...
+end
+```
+
+And voila, our tests are once again all passing.
+  
   - 2.3.5 - Validation - pawn cannot move diagonally when not taking
 - 2.4 - Refactor - Movement types
