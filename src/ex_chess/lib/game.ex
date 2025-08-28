@@ -121,7 +121,7 @@ defmodule ExChess.Game do
     cond do
       # taking
       from.file != to.file ->
-        true
+        not Board.square_empty?(board, to)
 
       # one rank advance
       abs(to.rank - from.rank) == 1 ->

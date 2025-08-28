@@ -553,5 +553,63 @@ end
 
 And voila, our tests are once again all passing.
   
-  - 2.3.5 - Validation - pawn cannot move diagonally when not taking
-- 2.4 - Refactor - Movement types
+### 2.3.5 - Validation - pawn cannot move diagonally when not taking
+
+#### Test
+```elixir
+  test "validation - pawn cannot take empty squares" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |rnbqkbnr| 8
+      7 |pppppppp| 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |PPPPPPPP| 2
+      1 |RNBQKBNR| 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_move(game, "d2c3")
+    |> Assert.invalid_move()
+
+    Arrange.game_move(game, "d2e3")
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_move(game, "d2d3")
+    |> Arrange.game_move("d7c6")
+    |> Assert.invalid_move()
+
+    Arrange.game_move(game, "d2d3")
+    |> Arrange.game_move("d7e6")
+    |> Assert.invalid_move()
+  end
+```
+
+#### Implementation
+Slight update to our pawn rules.
+```diff
+defmodule ExChess.Game do
+  ...
+  defp piece_rules_followed?(
+         %Piece{type: :p, color: color},
+         %Move{from: from, to: to},
+         board = %{}
+       ) do
+    direction = direction(color)
+
+    cond do
+      # taking
+      from.file != to.file ->
+-       true
++       not Board.square_empty?(board, to)
+  ...
+end
+```
