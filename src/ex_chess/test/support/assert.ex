@@ -46,4 +46,26 @@ defmodule ExChessTest.Assert do
   defp piece_label(%Piece{type: :k, color: :black}), do: "k"
 
   def invalid_move(error), do: assert(error == {:error, :invalid_move})
+
+  def legal_moves(actual, expected_text) do
+    actual_text =
+      actual
+      |> Enum.map(&square_to_text/1)
+
+    assert actual_text == expected_text
+  end
+
+  defp square_to_text(%Square{file: file, rank: rank}),
+    do: "#{file_to_text(file)}#{rank_to_text(rank)}"
+
+  defp file_to_text(0), do: "a"
+  defp file_to_text(1), do: "b"
+  defp file_to_text(2), do: "c"
+  defp file_to_text(3), do: "d"
+  defp file_to_text(4), do: "e"
+  defp file_to_text(5), do: "f"
+  defp file_to_text(6), do: "g"
+  defp file_to_text(7), do: "h"
+
+  defp rank_to_text(rank), do: "#{rank + 1}"
 end

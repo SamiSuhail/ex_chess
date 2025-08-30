@@ -62,4 +62,10 @@ defmodule ExChessTest.GameTest do
     |> Arrange.game_move("b1d0")
     |> Assert.invalid_move()
   end
+
+  test "list legal moves" do
+    Arrange.new_game()
+    |> Arrange.game_list_legal_moves("b1")
+    |> Assert.legal_moves(["a3", "c3"])
+  end
 end

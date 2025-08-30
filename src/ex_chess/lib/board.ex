@@ -46,6 +46,10 @@ defmodule ExChess.Board do
   @spec get(t(), Square.t()) :: Piece.t() | nil
   def get(board = %{}, square = %Square{}), do: Map.get(board, square)
 
+  @spec square_empty?(t(), Square.t()) :: boolean()
+  def square_empty?(board = %{}, square = %Square{}),
+    do: is_nil(get(board, square))
+
   @spec set(t(), Square.t(), Piece.t()) :: t()
   def set(
         board = %{},
