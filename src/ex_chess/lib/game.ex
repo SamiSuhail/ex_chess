@@ -83,6 +83,19 @@ defmodule ExChess.Game do
     {2, 1},
   ]
 
+  @rook_patterns [
+                   {0, 1},
+                   {1, 0},
+                   {0, -1},
+                   {-1, 0},
+                 ]
+                 |> Enum.flat_map(fn {file_direction, rank_direction} ->
+                   1..7
+                   |> Enum.map(fn distance ->
+                     {file_direction * distance, rank_direction * distance}
+                   end)
+                 end)
+
   @pawn_patterns_white [
     {0, 1},
     {0, 2},
@@ -99,6 +112,7 @@ defmodule ExChess.Game do
 
   defp patterns(%Piece{type: :k}), do: @king_patterns
   defp patterns(%Piece{type: :n}), do: @knight_patterns
+  defp patterns(%Piece{type: :r}), do: @rook_patterns
   defp patterns(%Piece{type: :p, color: :white}), do: @pawn_patterns_white
   defp patterns(%Piece{type: :p, color: :black}), do: @pawn_patterns_black
   defp patterns(_), do: []

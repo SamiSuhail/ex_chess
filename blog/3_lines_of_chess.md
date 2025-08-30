@@ -37,3 +37,97 @@ Today is about finishing up the basic piece movements. The last three pieces all
 - 3.2 - Bishops
 - 3.3 - Queens
 - 3.4 - Validation - cannot move when path is blocked
+
+## 3.1 - Rooks
+We'll start with the rooks. We need to make sure those can move in straight lines.
+
+### Test
+You'll notice I'm adding a couple of new helper functions in order to make the tests more readable. I won't share the code for that, but feel free to look at it on [my PR](https://github.com/SamiSuhail/ex_chess/pull/3).
+
+All we're doing here is making sure the rooks of both players are able to move in straight lines on the board.
+```elixir
+defmodule ExChessTest.RookTest do
+  use ExUnit.Case
+  alias ExChessTest.{Arrange, Assert}
+
+  test "list_legal_moves" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |k       | 8
+      7 |p       | 7
+      6 |        | 6
+      5 |    r   | 5
+      4 |   R    | 4
+      3 |        | 3
+      2 |P       | 2
+      1 |K       | 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_list_legal_moves(game, "d4")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | k       [ ]            | 8
+    7 | p       [ ]            | 7
+    6 |         [ ]            | 6
+    5 |         [ ] r          | 5
+    4 |[ ][ ][ ] R [ ][ ][ ][ ]| 4
+    3 |         [ ]            | 3
+    2 | P       [ ]            | 2
+    1 | K       [ ]            | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_list_legal_moves("e5")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | k          [ ]         | 8
+    7 | p          [ ]         | 7
+    6 |            [ ]         | 6
+    5 |[ ][ ][ ][ ] r [ ][ ][ ]| 5
+    4 |          R [ ]         | 4
+    3 |            [ ]         | 3
+    2 | P          [ ]         | 2
+    1 | K          [ ]         | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+  end
+end
+```
+
+### Implementation
+All we need to do is add the rook patterns. I'll do that by representing all four directions as `{file_direction, rank_direction}` tuples. We can then get `1..7` as distances in order to get 7 squares in each direction. This is the full range of motion of the rook. 
+
+```elixir
+defmodule ExChess.Game do
+  ...
+  @rook_patterns [
+                   {0, 1},
+                   {1, 0},
+                   {0, -1},
+                   {-1, 0},
+                 ]
+                 |> Enum.flat_map(fn {file_direction, rank_direction} ->
+                   1..7
+                   |> Enum.map(fn distance ->
+                     {file_direction * distance, rank_direction * distance}
+                   end)
+                 end)
+  ...
+  defp patterns(%Piece{type: :r}), do: @rook_patterns
+  ...
+end
+```
+
+And like that our test is now passing. Let's do the same for bishops and queens.

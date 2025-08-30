@@ -30,6 +30,59 @@ defmodule ExChessTest.Assert do
     "#{rank_label} |#{pieces_text}| #{rank_label}"
   end
 
+  def invalid_move(error), do: assert(error == {:error, :invalid_move})
+
+  def legal_moves({%Game{board: board}, actual}, expected_text) when is_binary(expected_text) do
+    assert Enum.all?(actual, fn %Square{file: file, rank: rank} ->
+             file in 0..7 and rank in 0..7
+           end)
+
+    ranks_text =
+      7..0//-1
+      |> Enum.map(fn rank -> legal_moves_rank(actual, rank, board) end)
+      |> Enum.join(@rank_joiner)
+
+    assert """
+               a  b  c  d  e  f  g  h
+             --------------------------
+           #{ranks_text}
+             --------------------------
+               a  b  c  d  e  f  g  h
+           """ == expected_text
+  end
+
+  def legal_moves({_game, actual}, expected_text) when is_list(expected_text) do
+    assert Enum.all?(actual, fn %Square{file: file, rank: rank} ->
+             file in 0..7 and rank in 0..7
+           end)
+
+    actual_text =
+      actual
+      |> Enum.map(&square_to_text/1)
+
+    assert actual_text == expected_text
+  end
+
+  defp legal_moves_rank(legal_moves, rank, board = %{}) do
+    rank_label = (rank + 1) |> to_string()
+
+    pieces_text =
+      0..7
+      |> Enum.map(fn file ->
+        square = Square.new(file, rank)
+        Board.get(board, square) |> legal_moves_square_label(square, legal_moves)
+      end)
+      |> Enum.join(@file_joiner)
+
+    "#{rank_label} |#{pieces_text}| #{rank_label}"
+  end
+
+  defp legal_moves_square_label(piece, square, legal_moves) do
+    if square in legal_moves,
+      do: "[#{piece_label(piece)}]",
+      else: " #{piece_label(piece)} "
+  end
+
   defp piece_label(nil), do: " "
 
   defp piece_label(%Piece{type: :p, color: :white}), do: "P"
@@ -44,16 +97,6 @@ defmodule ExChessTest.Assert do
   defp piece_label(%Piece{type: :q, color: :black}), do: "q"
   defp piece_label(%Piece{type: :k, color: :white}), do: "K"
   defp piece_label(%Piece{type: :k, color: :black}), do: "k"
-
-  def invalid_move(error), do: assert(error == {:error, :invalid_move})
-
-  def legal_moves(actual, expected_text) do
-    actual_text =
-      actual
-      |> Enum.map(&square_to_text/1)
-
-    assert actual_text == expected_text
-  end
 
   defp square_to_text(%Square{file: file, rank: rank}),
     do: "#{file_to_text(file)}#{rank_to_text(rank)}"
