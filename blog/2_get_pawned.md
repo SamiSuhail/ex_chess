@@ -31,7 +31,7 @@ Today sounds like it's all about pawns but it really isn't. If phase one was us 
   - 2.3.3 - Validation - pawn cannot advance if path is blocked
   - 2.3.4 - Taking
   - 2.3.5 - Validation - pawn cannot move diagonally when not taking
-- 2.4 - Refactor - Movement types
+  - 2.3.6 - Test - list_legal_moves
 
 ## 2.1 - `Game.list_legal_moves(game, from_square)`
 Most chess apps have some functionality similar to this - you click a piece on the board and the squares it can move to are highlighted. By implementing this early one we ensure it helps shape our design in a way that accomodates it.
@@ -613,3 +613,6 @@ defmodule ExChess.Game do
   ...
 end
 ```
+
+### 2.3.6 - Test - list_legal_moves
+I've added tests using `Game.list_legal_moves` that cover all of the scenarios above for the pawns. I won't add them to the blog post but feel free to check them out in [this PR](https://github.com/SamiSuhail/ex_chess/pull/2).
