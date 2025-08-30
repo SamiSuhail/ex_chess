@@ -131,3 +131,90 @@ end
 ```
 
 And like that our test is now passing. Let's do the same for bishops and queens.
+
+## 3.2 - Bishops
+Very similar to the rooks, with the only difference being that they go diagonally instead of straight lines.
+
+### Test
+```elixir
+defmodule ExChessTest.BishopTest do
+  use ExUnit.Case
+  alias ExChessTest.{Arrange, Assert}
+
+  test "list_legal_moves" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |    k   | 8
+      7 |    p   | 7
+      6 |        | 6
+      5 |    b   | 5
+      4 |    B   | 4
+      3 |        | 3
+      2 |    P   | 2
+      1 |    K   | 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_list_legal_moves(game, "e4")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 |[ ]          k          | 8
+    7 |   [ ]       p       [ ]| 7
+    6 |      [ ]         [ ]   | 6
+    5 |         [ ] b [ ]      | 5
+    4 |             B          | 4
+    3 |         [ ]   [ ]      | 3
+    2 |      [ ]    P    [ ]   | 2
+    1 |   [ ]       K       [ ]| 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_list_legal_moves("e5")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 |   [ ]       k       [ ]| 8
+    7 |      [ ]    p    [ ]   | 7
+    6 |         [ ]   [ ]      | 6
+    5 |             b          | 5
+    4 |         [ ] B [ ]      | 4
+    3 |      [ ]         [ ]   | 3
+    2 |   [ ]       P       [ ]| 2
+    1 |[ ]          K          | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+  end
+end
+```
+
+### Implementation
+```elixir
+defmodule ExChess.Game do
+  ...
+  @bishop_patterns [
+                     {1, 1},
+                     {1, -1},
+                     {-1, 1},
+                     {-1, -1},
+                   ]
+                   |> Enum.flat_map(fn {file_direction, rank_direction} ->
+                     1..7
+                     |> Enum.map(fn distance ->
+                       {file_direction * distance, rank_direction * distance}
+                     end)
+                   end)
+  ...
+  defp patterns(%Piece{type: :b}), do: @bishop_patterns
+  ...
+end
+```
