@@ -616,3 +616,15 @@ end
 
 ### 2.3.6 - Test - list_legal_moves
 I've added tests using `Game.list_legal_moves` that cover all of the scenarios above for the pawns. I won't add them to the blog post but feel free to check them out in [this PR](https://github.com/SamiSuhail/ex_chess/pull/2).
+
+## Conclusion
+We've added a function that allows us to list the legal moves for a piece, and we've implemented a good chunk of the pawns' functionality. I have an inkling we're going to end up refactoring a chunk of today's work later on, but time will tell.
+
+### Agenda
+Next time we're going to implement the last three piece types: bishops, rooks, and queens. Those three all have linear moves which is why it makes sense to work on them together.
+
+- 3 - Lines of chess
+  - 3.1 - Rooks
+  - 3.2 - Bishops
+  - 3.3 - Queens
+  - 3.4 - Validation - cannot move when path is blocked
