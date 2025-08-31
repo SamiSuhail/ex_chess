@@ -294,3 +294,134 @@ defmodule ExChess.Game do
   ...
 end
 ```
+
+## 3.4 - Validation - cannot move when path is blocked
+Whenever evaluating whether a move is valid for all three of the pieces we implemented today, we need to check that all the squares between the `from` and `to` squares are empty.
+
+### Test
+I will post only the tests I added for the queen. The rook and bishop tests are pretty similar, I recommend you write them yourself, but you can also find them on the PR for today's work. I am adding both ally and enemy pieces on the paths of the queen.
+
+```elixir
+  test "validation - cannot move when path is blocked (white)" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |k       | 8
+      7 |        | 7
+      6 | p p p  | 6
+      5 |        | 5
+      4 | P Q p  | 4
+      3 |        | 3
+      2 | P P P  | 2
+      1 |K       | 1
+        ----------
+         abcdefgh
+      """)
+
+    Arrange.game_list_legal_moves(game, "d4")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | k                      | 8
+    7 |                        | 7
+    6 |   [p]   [p]   [p]      | 6
+    5 |      [ ][ ][ ]         | 5
+    4 |    P [ ] Q [ ][p]      | 4
+    3 |      [ ][ ][ ]         | 3
+    2 |    P     P     P       | 2
+    1 | K                      | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+  end
+
+  test "validation - cannot move when path is blocked (black)" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |k       | 8
+      7 |        | 7
+      6 | p p p  | 6
+      5 |        | 5
+      4 | P q p  | 4
+      3 |        | 3
+      2 | P P P  | 2
+      1 |K       | 1
+        ----------
+         abcdefgh
+      """)
+
+    Arrange.game_list_legal_moves(game, "d4")
+
+    Arrange.game_list_legal_moves(game, "d4")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | k                      | 8
+    7 |                        | 7
+    6 |    p     p     p       | 6
+    5 |      [ ][ ][ ]         | 5
+    4 |   [P][ ] q [ ] p       | 4
+    3 |      [ ][ ][ ]         | 3
+    2 |   [P]   [P]   [P]      | 2
+    1 | K                      | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+  end
+```
+
+### Implementation
+You'll notice that this first implementation I've done is suboptimal (to say the least). When using `Game.list_legal_moves` it will iterate through each square on the piece's patterns, and in the case of today's linear pieces, it will check the path for each one of them. That means that some squares will be checked up to 7 times instead of just once.
+
+I won't bother optimizing it this early on, once we're done implementing everything for the chess game we will run some benchmarks and make changes if needed.
+
+We start by adding a new function head to `Game.piece_rules_followed?` for rooks, bishops and queens. We start by checking the direction of travel - we then start shifting the square in that direction and verify it is empty. Once we've reached the target square, we can conclude the move is valid.
+```elixir
+defmodule ExChess.Game do
+  ...
+  defp piece_rules_followed?(
+         %Piece{type: piece},
+         move = %Move{},
+         board = %{}
+       )
+       when piece in [:r, :b, :q] do
+    linear_path_free?(board, move)
+  end
+  ...
+  defp linear_path_free?(board = %{}, %Move{from: from, to: to}) do
+    file_direction = linear_direction(from.file, to.file)
+    rank_direction = linear_direction(from.rank, to.rank)
+
+    first_square = Square.shift(from, file_direction, rank_direction)
+
+    linear_path_free?(board, first_square, to, file_direction, rank_direction)
+  end
+
+  defp linear_path_free?(_, square = %Square{}, target_square = %Square{}, _, _)
+       when square.file == target_square.file and square.rank == target_square.rank,
+       do: true
+
+  defp linear_path_free?(board, square, target_square, file_direction, rank_direction) do
+    Board.square_empty?(board, square) and
+      linear_path_free?(
+        board,
+        Square.shift(square, file_direction, rank_direction),
+        target_square,
+        file_direction,
+        rank_direction
+      )
+  end
+
+  defp linear_direction(from, to) when to < from, do: -1
+  defp linear_direction(from, to) when to > from, do: 1
+  defp linear_direction(_, _), do: 0
+  ...
+end
+```
+
+And just like that, all of our linear pieces are implemented fully. 
