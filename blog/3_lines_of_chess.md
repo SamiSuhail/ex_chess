@@ -402,26 +402,28 @@ defmodule ExChess.Game do
     linear_path_free?(board, first_square, to, file_direction, rank_direction)
   end
 
-  defp linear_path_free?(_, square = %Square{}, target_square = %Square{}, _, _)
-       when square.file == target_square.file and square.rank == target_square.rank,
-       do: true
-
-  defp linear_path_free?(board, square, target_square, file_direction, rank_direction) do
-    Board.square_empty?(board, square) and
-      linear_path_free?(
-        board,
-        Square.shift(square, file_direction, rank_direction),
-        target_square,
-        file_direction,
-        rank_direction
-      )
-  end
-
   defp linear_direction(from, to) when to < from, do: -1
   defp linear_direction(from, to) when to > from, do: 1
   defp linear_direction(_, _), do: 0
+
+  defp linear_path_free?(board, square, target_square, file_direction, rank_direction) do
+    cond do
+      Square.same_location?(square, target_square) ->
+        true
+
+      not Board.square_empty?(board, square) ->
+        false
+
+      true ->
+        linear_path_free?(
+          board,
+          Square.shift(square, file_direction, rank_direction),
+          target_square,
+          file_direction,
+          rank_direction
+        )
+    end
+  end
   ...
 end
 ```
-
-And just like that, all of our linear pieces are implemented fully. 
