@@ -427,3 +427,19 @@ defmodule ExChess.Game do
   ...
 end
 ```
+
+## Conclusion
+The last three pieces can now move around on the board, cool - that wasn't too bad.
+
+### Agenda
+Next time we'll look at some of the special moves that we've postponed implementing.
+
+- 4 - Chess is special
+  - 4.1 - En passant
+  - 4.2 - Validation - cannot en passant if pawn did not advance two squares 
+  - 4.3 - Promotion
+  - 4.4 - Validation - pawn cannot promote if not on final square
+  - 4.5 - Castle
+  - 4.6 - Validation - cannot castle if path is not clear
+  - 4.7 - Validation - cannot castle if rook has moved
+  - 4.8 - Validation - cannot castle if king has moved
