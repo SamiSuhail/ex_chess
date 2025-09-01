@@ -274,4 +274,158 @@ defmodule ExChessTest.PawnTest do
     |> Arrange.game_move("d7e6")
     |> Assert.invalid_move()
   end
+
+  test "en passant" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |   k    | 8
+      7 |   p    | 7
+      6 |        | 6
+      5 |  P     | 5
+      4 |    p   | 4
+      3 |        | 3
+      2 |   P    | 2
+      1 |   K    | 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("d7d5")
+    |> Arrange.game_move("c5d6")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |   k    | 8
+    7 |        | 7
+    6 |   P    | 6
+    5 |        | 5
+    4 |    p   | 4
+    3 |        | 3
+    2 |   P    | 2
+    1 |   K    | 1
+      ----------
+       abcdefgh
+    """)
+
+    # black
+    Arrange.game_move(game, "d2d4")
+    |> Arrange.game_move("e4d3")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |   k    | 8
+    7 |   p    | 7
+    6 |        | 6
+    5 |  P     | 5
+    4 |        | 4
+    3 |   p    | 3
+    2 |        | 2
+    1 |   K    | 1
+      ----------
+       abcdefgh
+    """)
+  end
+
+  test "validation - cannot en passant if last move was not two square advance" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |   k    | 8
+      7 |   p    | 7
+      6 |        | 6
+      5 |  P     | 5
+      4 |    p   | 4
+      3 |        | 3
+      2 |   P    | 2
+      1 |   K    | 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("d7d6")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_move("d6d5")
+    |> Arrange.game_move("c5d6")
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_move(game, "d2d3")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_move("d3d4")
+    |> Arrange.game_move("e4d3")
+    |> Assert.invalid_move()
+  end
+
+  test "validation - cannot en passant if two square advance was two moves ago" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |   k    | 8
+      7 |   p    | 7
+      6 |        | 6
+      5 |  P     | 5
+      4 |    p   | 4
+      3 |        | 3
+      2 |   P    | 2
+      1 |   K    | 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("d7d5")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_move("d8c8")
+    |> Arrange.game_move("c5d6")
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_move(game, "d2d4")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_move("d1c1")
+    |> Arrange.game_move("e4d3")
+    |> Assert.invalid_move()
+  end
+
+  test "validation - cannot en passant if not on correct rank" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |   k    | 8
+      7 |   pp   | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |  PP    | 2
+      1 |   K    | 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("d7d5")
+    |> Arrange.game_move("c2d3")
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_move(game, "d2d4")
+    |> Arrange.game_move("e7d6")
+    |> Assert.invalid_move()
+  end
 end
