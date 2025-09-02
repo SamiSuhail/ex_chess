@@ -41,8 +41,9 @@ We've implemented the basic set of moves for all of our pieces. Today is all abo
 
 - 4.1 - En passant
 - 4.2 - Promotion
-- 4.3 - Validation - pawn cannot promote if not on final square
-- 4.4 - Validation - pawn cannot advance to final rank without promoting
+- 4.3 - Validation - pawn cannot promote to king or pawn
+- 4.4 - Validation - pawn cannot promote if not on final square
+- 4.5 - Validation - pawn cannot advance to final rank without promoting
 
 ## 4.1 - En passant
 In case you haven't heard of [en passant](https://en.wikipedia.org/wiki/En_passant) - it's a special rule in chess that allows you to capture an opponents pawn with your own pawn even if it is not diagonally in front, under some conditions of course. I won't go into detail on what the conditions are but I absolutely recommend you look into it if it's not something you already know.
