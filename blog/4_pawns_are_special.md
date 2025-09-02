@@ -51,6 +51,8 @@ In case you haven't heard of [en passant](https://en.wikipedia.org/wiki/En_passa
 ### Test
 The tests are by no means comprehensive, there are so many edge cases that we might want to validate. I stopped myself to the happy path plus three validation error assertions.
 
+I would usually implement the move first and the validations separately, but there was no good way of doing that without breaking some of our existing tests. So... brace yourself, this one is a bit more chunky.
+
 ```elixir
   test "en passant" do
     game =
@@ -236,7 +238,7 @@ defmodule ExChess.Game do
 end
 ```
 
-Now that we have that piece of state available as part of the `Game` struct, we can make use of it to extend out pawn's moves. Let's add a new parameter to `Game.valid_move?` - the special rules state. We can then use that to say: even if my basic set of moves for that piece does not allow this, fall back to checking out if any of the special moves allow it.
+Let's now use that in `Game.valid_move?`.
 ```elixir
   defp valid_move?(_board = %{}, _piece = nil, _move = %Move{}, _special_rules = %SpecialRules{}),
     do: false
@@ -260,8 +262,9 @@ Okay, so this new `Game.special_piece_rules_followed?` function takes in all the
 
 But what does the implementation look like?
 
-First and foremost, to avoid allowing illegal moves, the default case for this new function will be `false`. Other than that we're going to say: if my current pawn is trying to take a piece on the `en_passant_file`, and is on the correct rank to do that, then the move is allowed. 
+If the pawn is trying to take a piece on the `en_passant_file`, and is on the correct rank to do that, then the move is allowed. 
 
+Also, to avoid allowing illegal moves, the default case for this new function will be `false`. 
 ```elixir
   defp special_piece_rules_followed?(
          %Piece{type: :p, color: color},
@@ -340,3 +343,107 @@ And with that (plus some fixing of compiler errors, I'm sure you'll do just fine
 You'll notice that a design flaw is starting to emerge. There are now multiple places in the code, where we are performing very similar checks, in order to verify what type of move the pawn is making, and based on the type of move we run a different set of instructions.
 
 This will become increasingly apparent soon, when we implement even more of chess' weird special moves. That's not something I will be dealing with just yet, but it will be quite soon.
+
+## 4.2 - Promotion
+[**Wikipedia**](https://en.wikipedia.org/wiki/Promotion_(chess))
+
+*In chess, promotion is the replacement of a pawn with a new piece when the pawn is moved to its last rank.*
+
+### Test
+I've added a new `Arrange.game_promote` function which will be used when promoting a pawn in the tests. If you want to see the code for that, check out [the PR](https://github.com/SamiSuhail/ex_chess/pull/4) - although I am sure you can write it on your own, it's just syntactic sugar for `Game.move`.
+
+```elixir
+  test "promotion" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |k       | 8
+      7 |p  P    | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |P  p    | 2
+      1 |K       | 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_promote(game, "d7d8", :b)
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |k  B    | 8
+    7 |p       | 7
+    6 |        | 6
+    5 |        | 5
+    4 |        | 4
+    3 |        | 3
+    2 |P  p    | 2
+    1 |K       | 1
+      ----------
+       abcdefgh
+    """)
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_promote("d2d1", :b)
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |k       | 8
+    7 |p  P    | 7
+    6 |        | 6
+    5 |        | 5
+    4 |        | 4
+    3 |        | 3
+    2 |P       | 2
+    1 |K  b    | 1
+      ----------
+       abcdefgh
+    """)
+  end
+```
+### Implementation
+`Game.move` needs a new optional parameter - the piece type we are promoting to.
+
+I decided to call it `detail` - a generic term. That will come in handy later.
+```elixir
+defmodule ExChess.Move do
+  alias ExChess.Square
+
+  @type promotion_detail() :: {:promotion, :q | :r | :b | :n}
+  @type detail() :: nil | promotion_detail()
+  @type t() :: %__MODULE__{
+          from: Square.t(),
+          to: Square.t(),
+          detail: detail(),
+        }
+  @enforce_keys [:from, :to, :detail]
+  defstruct [:from, :to, :detail]
+
+  @spec new(Square.t(), Square.t(), detail()) :: t()
+  def new(from, to, detail \\ nil),
+    do: %__MODULE__{from: from, to: to, detail: detail}
+end
+```
+
+In terms of actually ensuring the promotion occurs, it's a pretty simple change.
+```elixir
+  defp maybe_promote(board, square, _detail = {:promotion, piece_type}, piece_color),
+    do: Board.set(board, square, Piece.new(piece_type, piece_color))
+
+  defp maybe_promote(board, _square, _detail, _piece_color), do: board
+```
+
+```diff
+      updated_board =
+        board
+        |> maybe_unset_en_passant_target(piece, move)
+        |> Board.set(to, piece)
+        |> Board.unset(from)
++       |> maybe_promote(to, detail, piece.color)
+```

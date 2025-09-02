@@ -18,7 +18,7 @@ defmodule ExChess.Game do
   @spec move(t(), Move.t()) :: t() | error()
   def move(
         game = %__MODULE__{board: board, special_rules: special_rules},
-        move = %Move{from: from, to: to}
+        move = %Move{from: from, to: to, detail: detail}
       ) do
     piece = Board.get(board, from)
 
@@ -28,6 +28,7 @@ defmodule ExChess.Game do
         |> maybe_unset_en_passant_target(piece, move)
         |> Board.set(to, piece)
         |> Board.unset(from)
+        |> maybe_promote(to, detail, piece.color)
 
       updated_special_rules =
         special_rules
@@ -53,6 +54,11 @@ defmodule ExChess.Game do
   end
 
   defp maybe_unset_en_passant_target(board = %{}, _piece = %Piece{}, _move = %Move{}), do: board
+
+  defp maybe_promote(board, square, _detail = {:promotion, piece_type}, piece_color),
+    do: Board.set(board, square, Piece.new(piece_type, piece_color))
+
+  defp maybe_promote(board, _square, _detail, _piece_color), do: board
 
   defp put_en_passant_file(special_rules = %SpecialRules{}, %Piece{type: :p}, %Move{
          from: from,
