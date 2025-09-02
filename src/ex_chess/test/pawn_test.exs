@@ -510,4 +510,39 @@ defmodule ExChessTest.PawnTest do
     |> Arrange.game_move("d2d1")
     |> Assert.invalid_move()
   end
+
+  test "validation - cannot promote to king or pawn" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |k       | 8
+      7 |p  P    | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |P  p    | 2
+      1 |K       | 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_promote(game, "d7d8", :k)
+    |> Assert.invalid_move()
+
+    Arrange.game_promote(game, "d7d8", :p)
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_promote("d2d1", :k)
+    |> Assert.invalid_move()
+
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_promote("d2d1", :p)
+    |> Assert.invalid_move()
+  end
 end

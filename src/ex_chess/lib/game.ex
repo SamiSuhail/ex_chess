@@ -104,10 +104,11 @@ defmodule ExChess.Game do
          special_piece_rules_followed?(piece, move, board, special_rules))
   end
 
+  @valid_pawn_promotion_types [:q, :r, :b, :n]
   defp valid_move_detail?(%Move{to: to, detail: detail}, %Piece{type: :p})
        when to.rank in [0, 7] do
     case detail do
-      {:promotion, _piece_type} -> true
+      {:promotion, piece_type} -> piece_type in @valid_pawn_promotion_types
       _ -> false
     end
   end

@@ -518,3 +518,57 @@ All we need for now, is to make sure if it is the final rank that the pawn is ad
 ```
 
 With that our tests are now green.
+
+## 4.4 - Validation - pawn cannot promote to king or pawn
+Not all piece types are valid for promotions. That needs to be validated.
+
+### Test
+```elixir
+  test "validation - cannot promote to king or pawn" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |k       | 8
+      7 |p  P    | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |P  p    | 2
+      1 |K       | 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_promote(game, "d7d8", :k)
+    |> Assert.invalid_move()
+
+    Arrange.game_promote(game, "d7d8", :p)
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_promote("d2d1", :k)
+    |> Assert.invalid_move()
+
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_promote("d2d1", :p)
+    |> Assert.invalid_move()
+  end
+```
+
+### Implementation
+A minor upgrade to `Game.valid_move_detail?`.
+```elixir
+  @valid_pawn_promotion_types [:q, :r, :b, :n]
+  defp valid_move_detail?(%Move{to: to, detail: detail}, %Piece{type: :p})
+       when to.rank in [0, 7] do
+    case detail do
+      {:promotion, piece_type} -> piece_type in @valid_pawn_promotion_types
+      _ -> false
+    end
+  end
+```
