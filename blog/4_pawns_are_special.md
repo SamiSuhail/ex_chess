@@ -572,3 +572,39 @@ A minor upgrade to `Game.valid_move_detail?`.
     end
   end
 ```
+
+## 4.5 - Validation - pawn cannot promote if not on final square
+Pretty self explanatory.
+
+### Test
+```elixir
+  test "validation - pawn cannot promote if not on final square" do
+    # white
+    Arrange.new_game()
+    |> Arrange.game_promote("a2a3", :q)
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.new_game()
+    |> Arrange.game_move("a2a3")
+    |> Arrange.game_promote("a7a6", :q)
+    |> Assert.invalid_move()
+  end
+```
+
+### Implementation
+All we need to do is add a function head to `Game.valid_move_detail?` for all other pawn moves ensuring the `detail` is `nil`.
+```diff
+  @valid_pawn_promotion_types [:q, :r, :b, :n]
+  defp valid_move_detail?(%Move{to: to, detail: detail}, %Piece{type: :p})
+       when to.rank in [0, 7] do
+    case detail do
+      {:promotion, piece_type} -> piece_type in @valid_pawn_promotion_types
+      _ -> false
+    end
+  end
+
++ defp valid_move_detail?(%Move{detail: detail}, %Piece{type: :p}), do: is_nil(detail)
+
+  defp valid_move_detail?(%Move{}, %Piece{}), do: true
+```

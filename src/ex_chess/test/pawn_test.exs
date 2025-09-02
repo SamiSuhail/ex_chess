@@ -545,4 +545,17 @@ defmodule ExChessTest.PawnTest do
     |> Arrange.game_promote("d2d1", :p)
     |> Assert.invalid_move()
   end
+
+  test "validation - pawn cannot promote if not on final square" do
+    # white
+    Arrange.new_game()
+    |> Arrange.game_promote("a2a3", :q)
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.new_game()
+    |> Arrange.game_move("a2a3")
+    |> Arrange.game_promote("a7a6", :q)
+    |> Assert.invalid_move()
+  end
 end

@@ -113,6 +113,8 @@ defmodule ExChess.Game do
     end
   end
 
+  defp valid_move_detail?(%Move{detail: detail}, %Piece{type: :p}), do: is_nil(detail)
+
   defp valid_move_detail?(%Move{}, %Piece{}), do: true
 
   @king_patterns [
