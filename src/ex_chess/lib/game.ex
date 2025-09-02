@@ -99,9 +99,20 @@ defmodule ExChess.Game do
     not Piece.same_color?(piece, target_piece) and
       patterns(piece)
       |> valid_move_pattern?(move) and
+      valid_move_detail?(move, piece) and
       (piece_rules_followed?(piece, move, board) or
          special_piece_rules_followed?(piece, move, board, special_rules))
   end
+
+  defp valid_move_detail?(%Move{to: to, detail: detail}, %Piece{type: :p})
+       when to.rank in [0, 7] do
+    case detail do
+      {:promotion, _piece_type} -> true
+      _ -> false
+    end
+  end
+
+  defp valid_move_detail?(%Move{}, %Piece{}), do: true
 
   @king_patterns [
     {-1, -1},

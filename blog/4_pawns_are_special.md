@@ -41,9 +41,9 @@ We've implemented the basic set of moves for all of our pieces. Today is all abo
 
 - 4.1 - En passant
 - 4.2 - Promotion
-- 4.3 - Validation - pawn cannot promote to king or pawn
-- 4.4 - Validation - pawn cannot promote if not on final square
-- 4.5 - Validation - pawn cannot advance to final rank without promoting
+- 4.3 - Validation - pawn cannot advance to final rank without promoting
+- 4.4 - Validation - pawn cannot promote to king or pawn
+- 4.5 - Validation - pawn cannot promote if not on final square
 
 ## 4.1 - En passant
 In case you haven't heard of [en passant](https://en.wikipedia.org/wiki/En_passant) - it's a special rule in chess that allows you to capture an opponents pawn with your own pawn even if it is not diagonally in front, under some conditions of course. I won't go into detail on what the conditions are but I absolutely recommend you look into it if it's not something you already know.
@@ -447,3 +447,74 @@ In terms of actually ensuring the promotion occurs, it's a pretty simple change.
         |> Board.unset(from)
 +       |> maybe_promote(to, detail, piece.color)
 ```
+
+## 4.3 - Validation - pawn cannot advance to final rank without promoting
+If a pawn advances to the final rank, a promotion is required.
+
+### Test
+```elixir
+  test "validation - cannot advance to final rank without promoting" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |k       | 8
+      7 |p  P    | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |P  p    | 2
+      1 |K       | 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_move(game, "d7d8")
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("d2d1")
+    |> Assert.invalid_move()
+  end
+```
+
+### Implementation
+First of all, `Game.valid_move?` needs to make an additional check.
+```diff
+  defp valid_move?(_board = %{}, _piece = nil, _move = %Move{}, _special_rules = %SpecialRules{}),
+    do: false
+
+  defp valid_move?(_board = %{}, _piece, _move = %Move{to: to}, _special_rules = %SpecialRules{})
+       when to.file not in 0..7 or to.rank not in 0..7,
+       do: false
+
+  defp valid_move?(board = %{}, piece = %Piece{}, move = %Move{}, special_rules = %SpecialRules{}) do
+    target_piece = Board.get(board, move.to)
+
+    not Piece.same_color?(piece, target_piece) and
+      patterns(piece)
+      |> valid_move_pattern?(move) and
++     valid_move_detail?(move, piece) and
+      (piece_rules_followed?(piece, move, board) or
+         special_piece_rules_followed?(piece, move, board, special_rules))
+  end
+```
+
+All we need for now, is to make sure if it is the final rank that the pawn is advancing to, then a promotion has been specified.
+```elixir
+  defp valid_move_detail?(%Move{to: to, detail: detail}, %Piece{type: :p})
+       when to.rank in [0, 7] do
+    case detail do
+      {:promotion, _piece_type} -> true
+      _ -> false
+    end
+  end
+
+  defp valid_move_detail?(%Move{}, %Piece{}), do: true
+```
+
+With that our tests are now green.

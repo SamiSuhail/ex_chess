@@ -482,4 +482,32 @@ defmodule ExChessTest.PawnTest do
        abcdefgh
     """)
   end
+
+  test "validation - cannot advance to final rank without promoting" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |k       | 8
+      7 |p  P    | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |P  p    | 2
+      1 |K       | 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_move(game, "d7d8")
+    |> Assert.invalid_move()
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("d2d1")
+    |> Assert.invalid_move()
+  end
 end
