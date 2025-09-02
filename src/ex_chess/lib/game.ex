@@ -1,12 +1,13 @@
 defmodule ExChess.Game do
-  alias ExChess.{Board, Move, Square, Piece}
+  alias ExChess.{SpecialRules, Board, Move, Square, Piece}
 
   @type error() :: {:error, :invalid_move}
   @type t() :: %__MODULE__{
           board: Board.t(),
+          special_rules: SpecialRules.t(),
         }
   @enforce_keys [:board]
-  defstruct [:board]
+  defstruct [:board, special_rules: SpecialRules.new()]
 
   @spec new() :: t()
   def new(),
@@ -16,25 +17,64 @@ defmodule ExChess.Game do
 
   @spec move(t(), Move.t()) :: t() | error()
   def move(
-        game = %__MODULE__{board: board},
-        move = %Move{from: from, to: to}
+        game = %__MODULE__{board: board, special_rules: special_rules},
+        move = %Move{from: from, to: to, detail: detail}
       ) do
     piece = Board.get(board, from)
 
-    if valid_move?(board, piece, move) do
+    if valid_move?(board, piece, move, special_rules) do
       updated_board =
         board
+        |> maybe_unset_en_passant_target(piece, move)
         |> Board.set(to, piece)
         |> Board.unset(from)
+        |> maybe_promote(to, detail, piece.color)
 
-      %__MODULE__{game | board: updated_board}
+      updated_special_rules =
+        special_rules
+        |> put_en_passant_file(piece, move)
+
+      %__MODULE__{game | board: updated_board, special_rules: updated_special_rules}
     else
       {:error, :invalid_move}
     end
   end
 
+  defp maybe_unset_en_passant_target(
+         board = %{},
+         _piece = %Piece{type: :p},
+         _move = %Move{from: from, to: to}
+       )
+       when from.file != to.file do
+    if Board.square_empty?(board, to) do
+      Board.unset(board, Square.new(to.file, from.rank))
+    else
+      board
+    end
+  end
+
+  defp maybe_unset_en_passant_target(board = %{}, _piece = %Piece{}, _move = %Move{}), do: board
+
+  defp maybe_promote(board, square, _detail = {:promotion, piece_type}, piece_color),
+    do: Board.set(board, square, Piece.new(piece_type, piece_color))
+
+  defp maybe_promote(board, _square, _detail, _piece_color), do: board
+
+  defp put_en_passant_file(special_rules = %SpecialRules{}, %Piece{type: :p}, %Move{
+         from: from,
+         to: to,
+       })
+       when abs(to.rank - from.rank) == 2,
+       do: %SpecialRules{special_rules | en_passant_file: to.file}
+
+  defp put_en_passant_file(special_rules = %SpecialRules{}, %Piece{}, %Move{}),
+    do: %SpecialRules{special_rules | en_passant_file: nil}
+
   @spec list_legal_moves(t(), Square.t()) :: [Square.t()]
-  def list_legal_moves(%__MODULE__{board: board}, from_square = %Square{}) do
+  def list_legal_moves(
+        %__MODULE__{board: board, special_rules: special_rules},
+        from_square = %Square{}
+      ) do
     piece = Board.get(board, from_square)
 
     patterns(piece)
@@ -42,24 +82,40 @@ defmodule ExChess.Game do
       Square.shift(from_square, file_shift, rank_shift)
     end)
     |> Enum.filter(fn to_square ->
-      valid_move?(board, piece, Move.new(from_square, to_square))
+      valid_move?(board, piece, Move.new(from_square, to_square), special_rules)
     end)
   end
 
-  defp valid_move?(_board = %{}, _piece = nil, _move = %Move{}), do: false
+  defp valid_move?(_board = %{}, _piece = nil, _move = %Move{}, _special_rules = %SpecialRules{}),
+    do: false
 
-  defp valid_move?(_board = %{}, _piece, _move = %Move{to: to})
+  defp valid_move?(_board = %{}, _piece, _move = %Move{to: to}, _special_rules = %SpecialRules{})
        when to.file not in 0..7 or to.rank not in 0..7,
        do: false
 
-  defp valid_move?(board = %{}, piece = %Piece{}, move = %Move{}) do
+  defp valid_move?(board = %{}, piece = %Piece{}, move = %Move{}, special_rules = %SpecialRules{}) do
     target_piece = Board.get(board, move.to)
 
     not Piece.same_color?(piece, target_piece) and
       patterns(piece)
       |> valid_move_pattern?(move) and
-      piece_rules_followed?(piece, move, board)
+      valid_move_detail?(move, piece) and
+      (piece_rules_followed?(piece, move, board) or
+         special_piece_rules_followed?(piece, move, board, special_rules))
   end
+
+  @valid_pawn_promotion_types [:q, :r, :b, :n]
+  defp valid_move_detail?(%Move{to: to, detail: detail}, %Piece{type: :p})
+       when to.rank in [0, 7] do
+    case detail do
+      {:promotion, piece_type} -> piece_type in @valid_pawn_promotion_types
+      _ -> false
+    end
+  end
+
+  defp valid_move_detail?(%Move{detail: detail}, %Piece{type: :p}), do: is_nil(detail)
+
+  defp valid_move_detail?(%Move{}, %Piece{}), do: true
 
   @king_patterns [
     {-1, -1},
@@ -211,4 +267,21 @@ defmodule ExChess.Game do
         )
     end
   end
+
+  defp special_piece_rules_followed?(
+         %Piece{type: :p, color: color},
+         %Move{from: from, to: to},
+         %{},
+         %SpecialRules{
+           en_passant_file: en_passant_file,
+         }
+       ),
+       do:
+         to.file == en_passant_file and to.file != from.file and
+           from.rank == en_passant_rank(color)
+
+  defp special_piece_rules_followed?(%Piece{}, %Move{}, %{}, %SpecialRules{}), do: false
+
+  defp en_passant_rank(:white), do: 4
+  defp en_passant_rank(:black), do: 3
 end

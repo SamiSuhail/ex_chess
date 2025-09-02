@@ -54,6 +54,11 @@ defmodule ExChessTest.Arrange do
     Game.move(game, move)
   end
 
+  def game_promote(game, move_text, piece_type) do
+    move = %Move{parse_move(move_text) | detail: {:promotion, piece_type}}
+    Game.move(game, move)
+  end
+
   defp parse_move(<<
          from::binary-size(2),
          to::binary-size(2)
