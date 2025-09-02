@@ -608,3 +608,19 @@ All we need to do is add a function head to `Game.valid_move_detail?` for all ot
 
   defp valid_move_detail?(%Move{}, %Piece{}), do: true
 ```
+
+## Conclusion
+Alright then, we're done with our pawns' special moves, quite the journey.
+
+I mentioned earlier about a refactor being pretty iminnent at this point. I do believe that postponing it a tad bit more will be beneficial though - let's instead continue with some more special moves.
+
+### Agenda
+The next step will be implementing [castling](https://en.wikipedia.org/wiki/Castling). One of the intricacies of castling is that the king must not be moving through a checked square during the castling. Since we have not yet implemented [check](https://en.wikipedia.org/wiki/Check_(chess)), we will need to do that as well.
+
+- 5 - Check out that castle
+  - 5.1 - Castle
+  - 5.2 - Validation - cannot castle if rook has moved
+  - 5.3 - Validation - cannot castle if king has moved
+  - 5.4 - Validation - cannot castle if path is not clear
+  - 5.5 - Validation - check respected
+  - 5.6 - Validation - cannot castle if square is under attack
