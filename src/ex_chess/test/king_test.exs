@@ -18,7 +18,8 @@ defmodule ExChessTest.KingTest do
       1 |        | 1
         ----------
          abcdefgh
-      """
+      """,
+      ["c3", "c4", "c5", "d3", "d5", "e3", "e4", "e5"]
     },
     {
       "taking",
@@ -35,17 +36,22 @@ defmodule ExChessTest.KingTest do
       1 |        | 1
         ----------
          abcdefgh
-      """
+      """,
+      ["c3", "c5", "d3", "d5", "e3", "e5"]
     },
   ]
 
-  for {scenario_name, board} <- @scenarios do
+  for {scenario_name, board, expected_legal_moves} <- @scenarios do
     @tag board: board
-    test "list legal moves - #{scenario_name}", %{board: board} do
+    @tag expected_legal_moves: expected_legal_moves
+    test "list legal moves - #{scenario_name}", %{
+      board: board,
+      expected_legal_moves: expected_legal_moves,
+    } do
       Arrange.new_game()
       |> Arrange.game_board(board)
       |> Arrange.game_list_legal_moves("d4")
-      |> Assert.legal_moves(["c3", "c4", "c5", "d3", "d5", "e3", "e4", "e5"])
+      |> Assert.legal_moves(expected_legal_moves)
     end
   end
 end

@@ -483,6 +483,34 @@ defmodule ExChessTest.PawnTest do
     """)
   end
 
+  test "promotion (list_legal_moves)" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |k       | 8
+      7 |p  P    | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |P  p    | 2
+      1 |K       | 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_list_legal_moves(game, "d7")
+    |> Assert.legal_moves(["d8"])
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_list_legal_moves("d2")
+    |> Assert.legal_moves(["d1"])
+  end
+
   test "validation - cannot advance to final rank without promoting" do
     game =
       Arrange.new_game()

@@ -18,17 +18,12 @@ defmodule ExChess.Game do
   @spec move(t(), Move.t()) :: t() | error()
   def move(
         game = %__MODULE__{board: board, special_rules: special_rules},
-        move = %Move{from: from, to: to, detail: detail}
+        move = %Move{}
       ) do
-    piece = Board.get(board, from)
+    piece = Board.get(board, move.from)
 
     if valid_move?(board, piece, move, special_rules) do
-      updated_board =
-        board
-        |> maybe_unset_en_passant_target(piece, move)
-        |> Board.set(to, piece)
-        |> Board.unset(from)
-        |> maybe_promote(to, detail, piece.color)
+      updated_board = update_board(board, piece, move)
 
       updated_special_rules =
         special_rules
@@ -39,26 +34,6 @@ defmodule ExChess.Game do
       {:error, :invalid_move}
     end
   end
-
-  defp maybe_unset_en_passant_target(
-         board = %{},
-         _piece = %Piece{type: :p},
-         _move = %Move{from: from, to: to}
-       )
-       when from.file != to.file do
-    if Board.square_empty?(board, to) do
-      Board.unset(board, Square.new(to.file, from.rank))
-    else
-      board
-    end
-  end
-
-  defp maybe_unset_en_passant_target(board = %{}, _piece = %Piece{}, _move = %Move{}), do: board
-
-  defp maybe_promote(board, square, _detail = {:promotion, piece_type}, piece_color),
-    do: Board.set(board, square, Piece.new(piece_type, piece_color))
-
-  defp maybe_promote(board, _square, _detail, _piece_color), do: board
 
   defp put_en_passant_file(special_rules = %SpecialRules{}, %Piece{type: :p}, %Move{
          from: from,
@@ -82,27 +57,108 @@ defmodule ExChess.Game do
       Square.shift(from_square, file_shift, rank_shift)
     end)
     |> Enum.filter(fn to_square ->
-      valid_move?(board, piece, Move.new(from_square, to_square), special_rules)
+      valid_move?(
+        board,
+        piece,
+        Move.new(from_square, to_square),
+        special_rules,
+        skip_move_patterns?: true,
+        skip_move_detail?: true
+      )
     end)
   end
 
-  defp valid_move?(_board = %{}, _piece = nil, _move = %Move{}, _special_rules = %SpecialRules{}),
+  defp valid_move?(_board, _piece, _move, _special_rules, _opts \\ [])
+
+  defp valid_move?(_board, _piece = nil, _move, _special_rules, _opts),
     do: false
 
-  defp valid_move?(_board = %{}, _piece, _move = %Move{to: to}, _special_rules = %SpecialRules{})
+  defp valid_move?(_board, _piece, _move = %Move{to: to}, _special_rules, _opts)
        when to.file not in 0..7 or to.rank not in 0..7,
        do: false
 
-  defp valid_move?(board = %{}, piece = %Piece{}, move = %Move{}, special_rules = %SpecialRules{}) do
+  defp valid_move?(
+         board = %{},
+         piece = %Piece{},
+         move = %Move{},
+         special_rules = %SpecialRules{},
+         opts
+       ) do
     target_piece = Board.get(board, move.to)
 
+    skip_move_patterns? = Keyword.get(opts, :skip_move_patterns?, false)
+    skip_move_detail? = Keyword.get(opts, :skip_move_detail?, false)
+    skip_check? = Keyword.get(opts, :skip_check?, false)
+
+    include_special_rules? = Keyword.get(opts, :include_special_rules?, true)
+
     not Piece.same_color?(piece, target_piece) and
-      patterns(piece)
-      |> valid_move_pattern?(move) and
-      valid_move_detail?(move, piece) and
+      (skip_move_patterns? or
+         patterns(piece)
+         |> valid_move_pattern?(move)) and
+      (skip_move_detail? or valid_move_detail?(move, piece)) and
       (piece_rules_followed?(piece, move, board) or
-         special_piece_rules_followed?(piece, move, board, special_rules))
+         (include_special_rules? and
+            special_piece_rules_followed?(piece, move, board, special_rules))) and
+      (skip_check? or check_respected?(board, piece, move))
   end
+
+  defp check_respected?(
+         board = %{},
+         piece = %Piece{color: color},
+         move = %Move{}
+       ) do
+    updated_board = update_board(board, piece, move)
+
+    {king_square, _king} =
+      Enum.find(updated_board, fn {_, curr_piece} ->
+        curr_piece.type == :k and curr_piece.color == color
+      end)
+
+    king_attacked? =
+      Enum.filter(updated_board, fn {_, curr_piece} -> curr_piece.color != color end)
+      |> Enum.any?(fn {square, enemy_piece} ->
+        valid_move?(
+          updated_board,
+          enemy_piece,
+          Move.new(square, king_square),
+          SpecialRules.new(),
+          include_special_rules?: false,
+          skip_move_detail?: true,
+          skip_check?: true
+        )
+      end)
+
+    not king_attacked?
+  end
+
+  defp update_board(board = %{}, piece = %Piece{}, move = %Move{}) do
+    board
+    |> maybe_unset_en_passant_target(piece, move)
+    |> Board.set(move.to, piece)
+    |> Board.unset(move.from)
+    |> maybe_promote(move.to, move.detail, piece.color)
+  end
+
+  defp maybe_unset_en_passant_target(
+         board = %{},
+         _piece = %Piece{type: :p},
+         _move = %Move{from: from, to: to}
+       )
+       when from.file != to.file do
+    if Board.square_empty?(board, to) do
+      Board.unset(board, Square.new(to.file, from.rank))
+    else
+      board
+    end
+  end
+
+  defp maybe_unset_en_passant_target(board = %{}, _piece = %Piece{}, _move = %Move{}), do: board
+
+  defp maybe_promote(board, square, _detail = {:promotion, piece_type}, piece_color),
+    do: Board.set(board, square, Piece.new(piece_type, piece_color))
+
+  defp maybe_promote(board, _square, _detail, _piece_color), do: board
 
   @valid_pawn_promotion_types [:q, :r, :b, :n]
   defp valid_move_detail?(%Move{to: to, detail: detail}, %Piece{type: :p})
