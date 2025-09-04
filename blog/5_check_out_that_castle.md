@@ -3,7 +3,7 @@ This blog post is part of a series that will be walking you through the process 
 
 Each blog post is a separate PR in [the github repository](https://github.com/SamiSuhail/ex_chess), and each section of the blog post with the relevant code is a commit in that PR.
 
-To look at the code, check out [this PR](https://github.com/SamiSuhail/ex_chess/pull/4).
+To look at the code, check out [this PR](https://github.com/SamiSuhail/ex_chess/pull/5).
 
 Check out the [introductory post](TODO).
 
@@ -53,3 +53,6 @@ Today we're implementing [castling](https://en.wikipedia.org/wiki/Castling). One
   - 5.2.3 - Validation - cannot castle if king has moved
   - 5.2.4 - Validation - cannot castle if path is not clear
   - 5.2.5 - Validation - cannot castle if square is under attack
+  
+## 5.1 - [Check](https://en.wikipedia.org/wiki/Check_(chess))
+There are multiple approaches we can take when it comes to check, I've thought through a couple of them and have taken my pick, but as usual I want to start with the tests - you could think of something far better than what I have.
