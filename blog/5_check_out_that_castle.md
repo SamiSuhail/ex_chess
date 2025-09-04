@@ -335,3 +335,7 @@ We then use each of those flags to potentially skip some of the validations, and
       (skip_check? or check_respected?(board, piece, move))
   end
 ```
+
+## 5.2 - [Castling](https://en.wikipedia.org/wiki/Castling)
+
+*Castling is a move in chess. It consists of moving the king two squares toward a rook on the same rank and then moving the rook to the square that the king passed over. Castling is permitted only if neither the king nor the rook has previously moved; the squares between the king and the rook are vacant; and the king does not leave, cross over, or finish on a square attacked by an enemy piece. Castling is the only move in chess in which two pieces are moved at once.*
