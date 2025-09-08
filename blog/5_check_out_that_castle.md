@@ -993,3 +993,101 @@ We check the all of the squares in between the rook and the king are empty.
     )
   end
 ```
+
+### 5.2.5 - Validation - cannot castle if square is under attack
+*The king does not pass through or finish on a square that is attacked by an enemy piece.*
+
+#### Test
+```elixir
+  test "validation - cannot castle if square is under attack" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |r   k  r| 8
+      7 |        | 7
+      6 |    N   | 6
+      5 |        | 5
+      4 |        | 4
+      3 |    n   | 3
+      2 |        | 2
+      1 |R   K  R| 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_list_legal_moves(game, "e1")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r           k        r | 8
+    7 |                        | 7
+    6 |             N          | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |             n          | 3
+    2 |         [ ][ ][ ]      | 2
+    1 | R           K        R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_list_legal_moves("e8")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r           k        r | 8
+    7 |         [ ][ ][ ]      | 7
+    6 |             N          | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |             n          | 3
+    2 |                        | 2
+    1 | R           K        R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+  end
+```
+
+#### Implementation
+Again, we start by extending our castle validation logic.
+```diff
+  defp special_piece_rules_followed?(
+         %Piece{type: :k, color: color},
+         move = %Move{from: from, to: to},
+         board = %{},
+         %SpecialRules{castles: castles}
+       )
+       when abs(to.file - from.file) == 2 do
+    king_starting_position?(color, from) and
+      king_and_rook_not_moved?(castles, to) and
+      castle_path_clear?(board, move) and
++     castle_path_safe?(board, move, color)
+  end
+```
+
+All we basically need to do is check that the three squares - from the king's current position to the king's target position - are not under attack by any of the enemy pieces.
+
+Luckily, that is a piece of code that we already have in the `check_respected?` function. I've extracted it into it's own `square_attacked?` function. I am sure you can manage to do that on your own, but if not you can see the full set of changes in [this PR](https://github.com/SamiSuhail/ex_chess/pull/5).
+```elixir
+  defp castle_path_safe?(board, %Move{from: from, to: to}, ally_color) do
+    direction =
+      if to.file == 2,
+        do: -1,
+        else: 1
+
+    any_square_attacked? =
+      0..(2 * direction)//direction
+      |> Enum.map(&Square.shift(from, &1, 0))
+      |> Enum.any?(&square_attacked?(&1, board, ally_color))
+
+    not any_square_attacked?
+  end
+```
+
+Castles are now invalid in case one of the squares the king travels through is under attack.

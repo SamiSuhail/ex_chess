@@ -448,4 +448,58 @@ defmodule ExChessTest.KingTest do
         a  b  c  d  e  f  g  h
     """)
   end
+
+  test "validation - cannot castle if square is under attack" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |r   k  r| 8
+      7 |        | 7
+      6 |    N   | 6
+      5 |        | 5
+      4 |        | 4
+      3 |    n   | 3
+      2 |        | 2
+      1 |R   K  R| 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_list_legal_moves(game, "e1")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r           k        r | 8
+    7 |                        | 7
+    6 |             N          | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |             n          | 3
+    2 |         [ ][ ][ ]      | 2
+    1 | R           K        R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_list_legal_moves("e8")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r           k        r | 8
+    7 |         [ ][ ][ ]      | 7
+    6 |             N          | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |             n          | 3
+    2 |                        | 2
+    1 | R           K        R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+  end
 end

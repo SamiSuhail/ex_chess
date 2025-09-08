@@ -136,21 +136,7 @@ defmodule ExChess.Game do
         curr_piece.type == :k and curr_piece.color == color
       end)
 
-    king_attacked? =
-      Enum.filter(updated_board, fn {_, curr_piece} -> curr_piece.color != color end)
-      |> Enum.any?(fn {square, enemy_piece} ->
-        valid_move?(
-          updated_board,
-          enemy_piece,
-          Move.new(square, king_square),
-          SpecialRules.new(),
-          include_special_rules?: false,
-          skip_move_detail?: true,
-          skip_check?: true
-        )
-      end)
-
-    not king_attacked?
+    not square_attacked?(king_square, updated_board, color)
   end
 
   defp update_board(board = %{}, piece = %Piece{}, move = %Move{}) do
@@ -390,7 +376,8 @@ defmodule ExChess.Game do
        when abs(to.file - from.file) == 2 do
     king_starting_position?(color, from) and
       king_and_rook_not_moved?(castles, to) and
-      castle_path_clear?(board, move)
+      castle_path_clear?(board, move) and
+      castle_path_safe?(board, move, color)
   end
 
   defp special_piece_rules_followed?(%Piece{}, %Move{}, %{}, %SpecialRules{}), do: false
@@ -427,5 +414,34 @@ defmodule ExChess.Game do
       file_shifts,
       &Board.square_empty?(board, Square.shift(from, &1, 0))
     )
+  end
+
+  defp castle_path_safe?(board, %Move{from: from, to: to}, ally_color) do
+    direction =
+      if to.file == 2,
+        do: -1,
+        else: 1
+
+    any_square_attacked? =
+      0..(2 * direction)//direction
+      |> Enum.map(&Square.shift(from, &1, 0))
+      |> Enum.any?(&square_attacked?(&1, board, ally_color))
+
+    not any_square_attacked?
+  end
+
+  defp square_attacked?(square, board, ally_color) do
+    Enum.filter(board, fn {_, curr_piece} -> curr_piece.color != ally_color end)
+    |> Enum.any?(fn {enemy_square, enemy_piece} ->
+      valid_move?(
+        board,
+        enemy_piece,
+        Move.new(enemy_square, square),
+        SpecialRules.new(),
+        include_special_rules?: false,
+        skip_move_detail?: true,
+        skip_check?: true
+      )
+    end)
   end
 end
