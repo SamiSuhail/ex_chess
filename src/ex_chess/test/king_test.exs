@@ -227,4 +227,109 @@ defmodule ExChessTest.KingTest do
         a  b  c  d  e  f  g  h
     """)
   end
+
+  test "validation - cannot castle if rook has moved" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |r   k  r| 8
+      7 |        | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |        | 2
+      1 |R   K  R| 1
+        ----------
+         abcdefgh
+      """)
+
+    # white queenside
+    Arrange.game_move(game, "a1a2")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_move("a2a1")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_list_legal_moves("e1")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r           k        r | 8
+    7 |                        | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |         [ ][ ][ ]      | 2
+    1 | R       [ ] K [ ][ ] R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # white kingside
+    Arrange.game_move(game, "h1h2")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_move("h2h1")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_list_legal_moves("e1")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r           k        r | 8
+    7 |                        | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |         [ ][ ][ ]      | 2
+    1 | R    [ ][ ] K [ ]    R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # black queenside
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("a8a7")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_move("a7a8")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_list_legal_moves("e8")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r       [ ] k [ ][ ] r | 8
+    7 |         [ ][ ][ ]      | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |                        | 2
+    1 | R           K        R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # black kingside
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("h8h7")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_move("h7h8")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_list_legal_moves("e8")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r    [ ][ ] k [ ]    r | 8
+    7 |         [ ][ ][ ]      | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |                        | 2
+    1 | R           K        R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+  end
 end

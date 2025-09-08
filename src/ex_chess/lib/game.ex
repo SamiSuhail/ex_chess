@@ -28,6 +28,7 @@ defmodule ExChess.Game do
       updated_special_rules =
         special_rules
         |> put_en_passant_file(piece, move)
+        |> maybe_put_castles(move.from)
 
       %__MODULE__{game | board: updated_board, special_rules: updated_special_rules}
     else
@@ -44,6 +45,24 @@ defmodule ExChess.Game do
 
   defp put_en_passant_file(special_rules = %SpecialRules{}, %Piece{}, %Move{}),
     do: %SpecialRules{special_rules | en_passant_file: nil}
+
+  defp maybe_put_castles(special_rules = %SpecialRules{castles: castles}, from_square = %Square{}) do
+    index =
+      case from_square do
+        %Square{file: 0, rank: 0} -> 0
+        %Square{file: 7, rank: 0} -> 1
+        %Square{file: 0, rank: 7} -> 2
+        %Square{file: 7, rank: 7} -> 3
+        _ -> nil
+      end
+
+    updated_castles =
+      if is_nil(index),
+        do: castles,
+        else: put_elem(castles, index, false)
+
+    %SpecialRules{special_rules | castles: updated_castles}
+  end
 
   @spec list_legal_moves(t(), Square.t()) :: [Square.t()]
   def list_legal_moves(
@@ -364,10 +383,11 @@ defmodule ExChess.Game do
          %Piece{type: :k, color: color},
          %Move{from: from, to: to},
          %{},
-         %SpecialRules{}
+         %SpecialRules{castles: castles}
        )
        when abs(to.file - from.file) == 2 do
-    king_starting_position?(color, from)
+    king_starting_position?(color, from) and
+      castle_allowed?(castles, to)
   end
 
   defp special_piece_rules_followed?(%Piece{}, %Move{}, %{}, %SpecialRules{}), do: false
@@ -378,4 +398,19 @@ defmodule ExChess.Game do
   defp king_starting_position?(:white, %Square{file: 4, rank: 0}), do: true
   defp king_starting_position?(:black, %Square{file: 4, rank: 7}), do: true
   defp king_starting_position?(_, _), do: false
+
+  defp castle_allowed?(
+         {
+           white_queenside?,
+           white_kingside?,
+           black_queenside?,
+           black_kingside?
+         },
+         to = %Square{}
+       ),
+       do:
+         (to.rank == 0 and to.file == 2 and white_queenside?) or
+           (to.rank == 0 and to.file == 6 and white_kingside?) or
+           (to.rank == 7 and to.file == 2 and black_queenside?) or
+           (to.rank == 7 and to.file == 6 and black_kingside?)
 end

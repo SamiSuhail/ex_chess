@@ -616,3 +616,188 @@ In the case of any other piece, the board is not updated.
 ```
 
 Our tests are now passing, and it's time to actually start tracking whether the rooks have moved.
+
+### 5.2.2 - Validation - cannot castle if rook has moved
+We need to extend our current implementation with the first condition for a castle - the rook has not previously moved.
+
+#### Test
+We're going to move each rook and return it back to it's initial position. We will then assert the castle in that rook's direction is no longer allowed.
+
+```elixir
+  test "validation - cannot castle if rook has moved" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |r   k  r| 8
+      7 |        | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |        | 2
+      1 |R   K  R| 1
+        ----------
+         abcdefgh
+      """)
+
+    # white queenside
+    Arrange.game_move(game, "a1a2")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_move("a2a1")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_list_legal_moves("e1")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r           k        r | 8
+    7 |                        | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |         [ ][ ][ ]      | 2
+    1 | R       [ ] K [ ][ ] R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # white kingside
+    Arrange.game_move(game, "h1h2")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_move("h2h1")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_list_legal_moves("e1")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r           k        r | 8
+    7 |                        | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |         [ ][ ][ ]      | 2
+    1 | R    [ ][ ] K [ ]    R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # black queenside
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("a8a7")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_move("a7a8")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_list_legal_moves("e8")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r       [ ] k [ ][ ] r | 8
+    7 |         [ ][ ][ ]      | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |                        | 2
+    1 | R           K        R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # black kingside
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("h8h7")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_move("h7h8")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_list_legal_moves("e8")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r    [ ][ ] k [ ]    r | 8
+    7 |         [ ][ ][ ]      | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |                        | 2
+    1 | R           K        R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+  end
+```
+
+#### Implementation
+We need to track some additional state as part of the `SpecialRules` struct - 4 boolean flags, one for each possible castle. We will set these boolean flags to `true` to start with.
+```elixir
+defmodule ExChess.SpecialRules do
+  @type castles() :: {boolean(), boolean(), boolean(), boolean()}
+  @type t() :: %__MODULE__{
+          en_passant_file: non_neg_integer() | nil,
+          castles: castles(),
+        }
+  defstruct en_passant_file: nil, castles: {true, true, true, true}
+
+  def new(), do: %__MODULE__{}
+end
+```
+
+If any of the rooks gets moved, we will make sure to set it's flag to `false`.
+```diff
+      updated_special_rules =
+        special_rules
+        |> put_en_passant_file(piece, move)
++       |> maybe_put_castles(move.from)
+```
+```elixir
+  defp maybe_put_castles(special_rules = %SpecialRules{castles: castles}, from_square = %Square{}) do
+    index =
+      case from_square do
+        %Square{file: 0, rank: 0} -> 0
+        %Square{file: 7, rank: 0} -> 1
+        %Square{file: 0, rank: 7} -> 2
+        %Square{file: 7, rank: 7} -> 3
+        _ -> nil
+      end
+
+    updated_castles =
+      if is_nil(index),
+        do: castles,
+        else: put_elem(castles, index, false)
+
+    %SpecialRules{special_rules | castles: updated_castles}
+  end
+```
+We then need to also make sure we validate that state before determining if a castle is legal or not.
+```elixir
+  defp special_piece_rules_followed?(
+         %Piece{type: :k, color: color},
+         %Move{from: from, to: to},
+         %{},
+         %SpecialRules{castles: castles}
+       )
+       when abs(to.file - from.file) == 2 do
+    king_starting_position?(color, from) and
+      castle_allowed?(castles, to) # this is new
+  end
+  ...
+  defp castle_allowed?(
+         {
+           white_queenside?,
+           white_kingside?,
+           black_queenside?,
+           black_kingside?
+         },
+         to = %Square{}
+       ),
+       do:
+         (to.rank == 0 and to.file == 2 and white_queenside?) or
+           (to.rank == 0 and to.file == 6 and white_kingside?) or
+           (to.rank == 7 and to.file == 2 and black_queenside?) or
+           (to.rank == 7 and to.file == 6 and black_kingside?)
+```
+
+Our castles are now only allowed when the rook has not moved since the start of the game. But what about the kings?
