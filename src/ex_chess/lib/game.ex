@@ -138,6 +138,7 @@ defmodule ExChess.Game do
     |> Board.set(move.to, piece)
     |> Board.unset(move.from)
     |> maybe_promote(move.to, move.detail, piece.color)
+    |> maybe_castle(piece, move)
   end
 
   defp maybe_unset_en_passant_target(
@@ -159,6 +160,23 @@ defmodule ExChess.Game do
     do: Board.set(board, square, Piece.new(piece_type, piece_color))
 
   defp maybe_promote(board, _square, _detail, _piece_color), do: board
+
+  defp maybe_castle(board, %Piece{type: :k}, %Move{from: from, to: to})
+       when abs(to.file - from.file) < 2,
+       do: board
+
+  defp maybe_castle(board, %Piece{type: :k, color: color}, %Move{to: to}) do
+    {rook_from_file, rook_to_file} =
+      case to.file do
+        2 -> {0, 3}
+        6 -> {7, 5}
+      end
+
+    Board.unset(board, Square.new(rook_from_file, to.rank))
+    |> Board.set(Square.new(rook_to_file, to.rank), Piece.new(:r, color))
+  end
+
+  defp maybe_castle(board, _piece, _move), do: board
 
   @valid_pawn_promotion_types [:q, :r, :b, :n]
   defp valid_move_detail?(%Move{to: to, detail: detail}, %Piece{type: :p})
@@ -182,6 +200,9 @@ defmodule ExChess.Game do
     {1, -1},
     {1, 0},
     {1, 1},
+    # castle
+    {-2, 0},
+    {2, 0},
   ]
 
   @knight_patterns [
@@ -287,6 +308,9 @@ defmodule ExChess.Game do
     linear_path_free?(board, move)
   end
 
+  defp piece_rules_followed?(%Piece{type: :k}, %Move{from: from, to: to}, _board = %{}),
+    do: abs(to.file - from.file) <= 1
+
   defp piece_rules_followed?(%Piece{}, %Move{}, %{}), do: true
 
   defp pawn_direction(:white), do: 1
@@ -336,8 +360,22 @@ defmodule ExChess.Game do
          to.file == en_passant_file and to.file != from.file and
            from.rank == en_passant_rank(color)
 
+  defp special_piece_rules_followed?(
+         %Piece{type: :k, color: color},
+         %Move{from: from, to: to},
+         %{},
+         %SpecialRules{}
+       )
+       when abs(to.file - from.file) == 2 do
+    king_starting_position?(color, from)
+  end
+
   defp special_piece_rules_followed?(%Piece{}, %Move{}, %{}, %SpecialRules{}), do: false
 
   defp en_passant_rank(:white), do: 4
   defp en_passant_rank(:black), do: 3
+
+  defp king_starting_position?(:white, %Square{file: 4, rank: 0}), do: true
+  defp king_starting_position?(:black, %Square{file: 4, rank: 7}), do: true
+  defp king_starting_position?(_, _), do: false
 end

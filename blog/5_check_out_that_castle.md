@@ -48,7 +48,7 @@ Today we're implementing [castling](https://en.wikipedia.org/wiki/Castling). One
 - 5.1 - [Check](https://en.wikipedia.org/wiki/Check_(chess))
   - 5.1.1 - Validation - check respected
 - 5.2 - [Castling](https://en.wikipedia.org/wiki/Castling)
-  - 5.2.1 - Rooks are special
+  - 5.2.1 - Kings are special
   - 5.2.2 - Validation - cannot castle if rook has moved
   - 5.2.3 - Validation - cannot castle if king has moved
   - 5.2.4 - Validation - cannot castle if path is not clear
@@ -339,3 +339,280 @@ We then use each of those flags to potentially skip some of the validations, and
 ## 5.2 - [Castling](https://en.wikipedia.org/wiki/Castling)
 
 *Castling is a move in chess. It consists of moving the king two squares toward a rook on the same rank and then moving the rook to the square that the king passed over. Castling is permitted only if neither the king nor the rook has previously moved; the squares between the king and the rook are vacant; and the king does not leave, cross over, or finish on a square attacked by an enemy piece. Castling is the only move in chess in which two pieces are moved at once.*
+
+### 5.2.1 - Kings are special
+Let's start by making sure that castling works when the king is on the starting position. 
+
+#### Test
+We start with two tests. The happy path, and one that asserts the king cannot castle once moved from the starting position.
+
+First the happy path. We make sure both `move` and `list_legal_moves` work as expected. </br>
+Then we assert that castling from a square different than the king's starting position is illegal.
+
+The block of code is very vertical, but it is not particularly complex.
+```elixir
+  test "castling" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |r   k  r| 8
+      7 |        | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |        | 2
+      1 |R   K  R| 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_list_legal_moves(game, "e1")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r           k        r | 8
+    7 |                        | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |         [ ][ ][ ]      | 2
+    1 | R    [ ][ ] K [ ][ ] R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    Arrange.game_move(game, "e1c1")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |r   k  r| 8
+    7 |        | 7
+    6 |        | 6
+    5 |        | 5
+    4 |        | 4
+    3 |        | 3
+    2 |        | 2
+    1 |  KR   R| 1
+      ----------
+       abcdefgh
+    """)
+
+    Arrange.game_move(game, "e1g1")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |r   k  r| 8
+    7 |        | 7
+    6 |        | 6
+    5 |        | 5
+    4 |        | 4
+    3 |        | 3
+    2 |        | 2
+    1 |R    RK | 1
+      ----------
+       abcdefgh
+    """)
+
+    # black
+    game = Arrange.game_turn(game, :black)
+
+    Arrange.game_list_legal_moves(game, "e8")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r    [ ][ ] k [ ][ ] r | 8
+    7 |         [ ][ ][ ]      | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |                        | 2
+    1 | R           K        R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    Arrange.game_move(game, "e8c8")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |  kr   r| 8
+    7 |        | 7
+    6 |        | 6
+    5 |        | 5
+    4 |        | 4
+    3 |        | 3
+    2 |        | 2
+    1 |R   K  R| 1
+      ----------
+       abcdefgh
+    """)
+
+    Arrange.game_move(game, "e8g8")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |r    rk | 8
+    7 |        | 7
+    6 |        | 6
+    5 |        | 5
+    4 |        | 4
+    3 |        | 3
+    2 |        | 2
+    1 |R   K  R| 1
+      ----------
+       abcdefgh
+    """)
+  end
+
+  test "validation - cannot castle when not on starting position" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |r      r| 8
+      7 |    k   | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |    K   | 2
+      1 |R      R| 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_list_legal_moves(game, "e2")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r                    r | 8
+    7 |             k          | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |         [ ][ ][ ]      | 3
+    2 |         [ ] K [ ]      | 2
+    1 | R       [ ][ ][ ]    R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_list_legal_moves("e7")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r       [ ][ ][ ]    r | 8
+    7 |         [ ] k [ ]      | 7
+    6 |         [ ][ ][ ]      | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |             K          | 2
+    1 | R                    R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+  end
+```
+
+#### Implementation
+
+First thing's first, we need to make sure the castles are now part of the king's possible movement patterns.
+```diff
+  @king_patterns [
+    {-1, -1},
+    {-1, 0},
+    {-1, 1},
+    {0, -1},
+    {0, 1},
+    {1, -1},
+    {1, 0},
+    {1, 1},
++   # castle
++   {-2, 0},
++   {2, 0},
+  ]
+```
+
+We then need to make sure it is only allowed under the condition that the king is still on the starting position. This will be part of our set of special rules.
+
+As you might remember, our `valid_move?` function currently checks:
+```elixir
+  piece_rules_followed?(piece, move, board) or
+    (include_special_rules? and
+      special_piece_rules_followed?(piece, move, board, special_rules))
+```
+
+This means we need to make sure the castles and all of their logic are validated in `special_piece_rules_followed?` - to do that, `piece_rules_followed?` must return false for the castles - let's add a new function head.
+
+```elixir
+  defp piece_rules_followed?(%Piece{type: :k}, %Move{from: from, to: to}, _board = %{}),
+    do: abs(to.file - from.file) <= 1
+```
+
+And now to implement the real piece of validation - when the king is moving two files, we want to make sure it's `from` square is the starting position (`e1` and `e8` depending on the color).
+```elixir
+  defp special_piece_rules_followed?(
+         %Piece{type: :k, color: color},
+         %Move{from: from, to: to},
+         %{},
+         %SpecialRules{}
+       )
+       when abs(to.file - from.file) == 2 do
+    king_starting_position?(color, from)
+  end
+  
+  ...
+
+  defp king_starting_position?(:white, %Square{file: 4, rank: 0}), do: true
+  defp king_starting_position?(:black, %Square{file: 4, rank: 7}), do: true
+  defp king_starting_position?(_, _), do: false
+```
+
+You will notice that with this code, already our `list_legal_moves` assertion is passing, but the `move` assertion fails, because the rook is not moving on the other side of the king. Let's fix that.
+
+To ensure the board is updated correctly, let's extend our function.
+```diff
+  defp update_board(board = %{}, piece = %Piece{}, move = %Move{}) do
+    board
+    |> maybe_unset_en_passant_target(piece, move)
+    |> Board.set(move.to, piece)
+    |> Board.unset(move.from)
+    |> maybe_promote(move.to, move.detail, piece.color)
++   |> maybe_castle(piece, move)
+  end
+```
+
+If the piece is a king, and it is not moving 2 files over, then there is nothing to update. If however it is, then we need to grab the rook on the same side of the board, and move it over on the other side of the king.
+
+In the case of any other piece, the board is not updated.
+```elixir
+  defp maybe_castle(board, %Piece{type: :k}, %Move{from: from, to: to})
+       when abs(to.file - from.file) < 2,
+       do: board
+
+  defp maybe_castle(board, %Piece{type: :k, color: color}, %Move{to: to}) do
+    {rook_from_file, rook_to_file} =
+      case to.file do
+        2 -> {0, 3}
+        6 -> {7, 5}
+      end
+
+    Board.unset(board, Square.new(rook_from_file, to.rank))
+    |> Board.set(Square.new(rook_to_file, to.rank), Piece.new(:r, color))
+  end
+
+  defp maybe_castle(board, _piece, _move), do: board
+```
+
+Our tests are now passing, and it's time to actually start tracking whether the rooks have moved.
