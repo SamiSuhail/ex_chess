@@ -47,19 +47,21 @@ defmodule ExChess.Game do
     do: %SpecialRules{special_rules | en_passant_file: nil}
 
   defp maybe_put_castles(special_rules = %SpecialRules{castles: castles}, from_square = %Square{}) do
-    index =
+    indexes =
       case from_square do
-        %Square{file: 0, rank: 0} -> 0
-        %Square{file: 7, rank: 0} -> 1
-        %Square{file: 0, rank: 7} -> 2
-        %Square{file: 7, rank: 7} -> 3
-        _ -> nil
+        # white
+        %Square{file: 0, rank: 0} -> [0]
+        %Square{file: 7, rank: 0} -> [1]
+        %Square{file: 4, rank: 0} -> [0, 1]
+        # black
+        %Square{file: 0, rank: 7} -> [2]
+        %Square{file: 7, rank: 7} -> [3]
+        %Square{file: 4, rank: 7} -> [2, 3]
+        _ -> []
       end
 
     updated_castles =
-      if is_nil(index),
-        do: castles,
-        else: put_elem(castles, index, false)
+      Enum.reduce(indexes, castles, fn index, castles -> put_elem(castles, index, false) end)
 
     %SpecialRules{special_rules | castles: updated_castles}
   end

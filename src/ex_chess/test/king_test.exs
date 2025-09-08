@@ -332,4 +332,66 @@ defmodule ExChessTest.KingTest do
         a  b  c  d  e  f  g  h
     """)
   end
+
+  test "validation - cannot castle if king has moved" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |r   k  r| 8
+      7 |        | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |        | 2
+      1 |R   K  R| 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_move(game, "e1e2")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_move("e2e1")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_list_legal_moves("e1")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r           k        r | 8
+    7 |                        | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |         [ ][ ][ ]      | 2
+    1 | R       [ ] K [ ]    R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("e8e7")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_move("e7e8")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_list_legal_moves("e8")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r       [ ] k [ ]    r | 8
+    7 |         [ ][ ][ ]      | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |                        | 2
+    1 | R           K        R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+  end
 end

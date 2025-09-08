@@ -801,3 +801,98 @@ We then need to also make sure we validate that state before determining if a ca
 ```
 
 Our castles are now only allowed when the rook has not moved since the start of the game. But what about the kings?
+
+### 5.2.3 - Validation - cannot castle if king has moved
+If one of the king moves, both it's castles should no longer be allowed.
+
+#### Test
+The exact same test as the above, except with fewer scenarios to look at
+```elixir
+  test "validation - cannot castle if king has moved" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |r   k  r| 8
+      7 |        | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |        | 2
+      1 |R   K  R| 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_move(game, "e1e2")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_move("e2e1")
+    |> Arrange.game_turn(:white)
+    |> Arrange.game_list_legal_moves("e1")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r           k        r | 8
+    7 |                        | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |         [ ][ ][ ]      | 2
+    1 | R       [ ] K [ ]    R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("e8e7")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_move("e7e8")
+    |> Arrange.game_turn(:black)
+    |> Arrange.game_list_legal_moves("e8")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r       [ ] k [ ]    r | 8
+    7 |         [ ][ ][ ]      | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |                        | 2
+    1 | R           K        R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+  end
+```
+
+#### Implementation
+All we need to do is rework the `maybe_put_castles` function to update the value of both castles for one of the players whenever their king is moved.
+```elixir
+  defp maybe_put_castles(special_rules = %SpecialRules{castles: castles}, from_square = %Square{}) do
+    indexes =
+      case from_square do
+        # white
+        %Square{file: 0, rank: 0} -> [0]
+        %Square{file: 7, rank: 0} -> [1]
+        %Square{file: 4, rank: 0} -> [0, 1]
+        # black
+        %Square{file: 0, rank: 7} -> [2]
+        %Square{file: 7, rank: 7} -> [3]
+        %Square{file: 4, rank: 7} -> [2, 3]
+        _ -> []
+      end
+
+    updated_castles =
+      Enum.reduce(indexes, castles, fn index, castles -> put_elem(castles, index, false) end)
+
+    %SpecialRules{special_rules | castles: updated_castles}
+  end
+```
+
+To be honest the tuple index approach becomes a bit cryptic so I was wondering whether I want to instead switch to a direct mapping from the `from_square` to `updated_castles` where I just build a new tuple without the `put_elem` macro, but I didn't feel strongly enough to actually do it. If you dislike these indexes absolutely feel free to keep your own solution instead.
