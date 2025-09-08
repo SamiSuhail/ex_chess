@@ -1091,3 +1091,21 @@ Luckily, that is a piece of code that we already have in the `check_respected?` 
 ```
 
 Castles are now invalid in case one of the squares the king travels through is under attack.
+
+## Conclusion
+It took us around 300 lines of code and 500 lines of tests but now not only is our game check-aware, it also allows the kings to castle when the conditions are met. It was a bug chunk of work, well done.
+
+### Agenda
+Next time will be all about refactoring. No new functionality, no new tests. 
+
+There is a lot of redundant conditional logic that is used to figure out what *type* of move we're looking at. Sometimes in guards, other times in function heads, as well as in `case` pattern matching. We want to consolidate those.
+
+The `Game` module has 26 functions and a bunch of attributes, it has a lot of responsibilities and it's not always easy to navigate it mentally. We're going to move that around a bit.
+
+We should also strive for idiomatic elixir, and there are a couple of places where we can improve on that.
+
+- Make it pretty (an Elixir refactoring story)
+  - I - Don't (over-)repeat yourself
+  - II - No gods 'round 'ere
+  - III - Idolize idioms
+  - IV - Understand units
