@@ -383,13 +383,14 @@ defmodule ExChess.Game do
 
   defp special_piece_rules_followed?(
          %Piece{type: :k, color: color},
-         %Move{from: from, to: to},
-         %{},
+         move = %Move{from: from, to: to},
+         board = %{},
          %SpecialRules{castles: castles}
        )
        when abs(to.file - from.file) == 2 do
     king_starting_position?(color, from) and
-      castle_allowed?(castles, to)
+      king_and_rook_not_moved?(castles, to) and
+      castle_path_clear?(board, move)
   end
 
   defp special_piece_rules_followed?(%Piece{}, %Move{}, %{}, %SpecialRules{}), do: false
@@ -401,7 +402,7 @@ defmodule ExChess.Game do
   defp king_starting_position?(:black, %Square{file: 4, rank: 7}), do: true
   defp king_starting_position?(_, _), do: false
 
-  defp castle_allowed?(
+  defp king_and_rook_not_moved?(
          {
            white_queenside?,
            white_kingside?,
@@ -415,4 +416,16 @@ defmodule ExChess.Game do
            (to.rank == 0 and to.file == 6 and white_kingside?) or
            (to.rank == 7 and to.file == 2 and black_queenside?) or
            (to.rank == 7 and to.file == 6 and black_kingside?)
+
+  defp castle_path_clear?(board, %Move{from: from, to: to}) do
+    file_shifts =
+      if to.file == 2,
+        do: -1..-3//-1,
+        else: 1..2
+
+    Enum.all?(
+      file_shifts,
+      &Board.square_empty?(board, Square.shift(from, &1, 0))
+    )
+  end
 end

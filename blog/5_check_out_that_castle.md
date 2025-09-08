@@ -896,3 +896,100 @@ All we need to do is rework the `maybe_put_castles` function to update the value
 ```
 
 To be honest the tuple index approach becomes a bit cryptic so I was wondering whether I want to instead switch to a direct mapping from the `from_square` to `updated_castles` where I just build a new tuple without the `put_elem` macro, but I didn't feel strongly enough to actually do it. If you dislike these indexes absolutely feel free to keep your own solution instead.
+
+### 5.2.4 - Validation - cannot castle if path is not clear
+We need to make sure that all squares between the king and the rook are clear before we can confirm the castle is allowed.
+
+#### Test
+We're ensuring the castles are not allowed when a piece is on one of the three squares in between the king and the rook.
+```elixir
+  test "validation - cannot castle if path is not clear" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |rB  k Br| 8
+      7 |        | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |        | 2
+      1 |Rb  K bR| 1
+        ----------
+         abcdefgh
+      """)
+
+    # white
+    Arrange.game_list_legal_moves(game, "e1")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r  B        k     B  r | 8
+    7 |                        | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |         [ ][ ]         | 2
+    1 | R  b    [ ] K [ ] b  R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+
+    # black
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_list_legal_moves("e8")
+    |> Assert.legal_moves("""
+        a  b  c  d  e  f  g  h
+      --------------------------
+    8 | r  B    [ ] k [ ] B  r | 8
+    7 |         [ ][ ]         | 7
+    6 |                        | 6
+    5 |                        | 5
+    4 |                        | 4
+    3 |                        | 3
+    2 |                        | 2
+    1 | R  b        K     b  R | 1
+      --------------------------
+        a  b  c  d  e  f  g  h
+    """)
+  end
+```
+
+#### Implementation
+First of all, we need to add an additional rule when determining if the castle is legal or not.
+```elixir
+  defp special_piece_rules_followed?(
+         %Piece{type: :k, color: color},
+         move = %Move{from: from, to: to},
+         board = %{},
+         %SpecialRules{castles: castles}
+       )
+       when abs(to.file - from.file) == 2 do
+    king_starting_position?(color, from) and
+      king_and_rook_not_moved?(castles, to) and
+      castle_path_clear?(board, move) # this is new
+  end
+```
+
+We check the all of the squares in between the rook and the king are empty.
+```elixir
+  defp castle_path_clear?(board, %Move{from: from, to: to}) do
+    direction =
+      if to.file - from.file > 0,
+        do: 1,
+        else: -1
+
+    file_shift_range =
+      if to.file == 2,
+        do: 1..3,
+        else: 1..2
+
+    Enum.all?(
+      file_shift_range,
+      &Board.square_empty?(board, Square.shift(from, &1 * direction, 0))
+    )
+  end
+```
