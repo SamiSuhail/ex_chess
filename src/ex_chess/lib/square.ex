@@ -22,4 +22,11 @@ defmodule ExChess.Square do
     do: true
 
   def same_location?(_, _), do: false
+
+  @spec compare(t(), t()) :: {integer(), integer()}
+  def compare(from = %__MODULE__{}, to = %__MODULE__{}) do
+    file_shift = to.file - from.file
+    rank_shift = to.rank - from.rank
+    {file_shift, rank_shift}
+  end
 end
