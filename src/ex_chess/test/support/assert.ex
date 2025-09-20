@@ -19,7 +19,7 @@ defmodule ExChessTest.Assert do
            """ == expected_board_string
   end
 
-  defp game_board_rank(rank, board = %{}) do
+  defp game_board_rank(rank, board) do
     rank_label = (rank + 1) |> to_string()
 
     pieces_text =
@@ -30,7 +30,7 @@ defmodule ExChessTest.Assert do
     "#{rank_label} |#{pieces_text}| #{rank_label}"
   end
 
-  def invalid_move(error), do: assert(error == {:error, :invalid_move})
+  def invalid_move(error), do: assert(error == :error)
 
   def legal_moves({%Game{board: board}, actual}, expected_text) when is_binary(expected_text) do
     assert Enum.all?(actual, fn %Square{file: file, rank: rank} ->
@@ -63,7 +63,7 @@ defmodule ExChessTest.Assert do
     assert actual_text == expected_text
   end
 
-  defp legal_moves_rank(legal_moves, rank, board = %{}) do
+  defp legal_moves_rank(legal_moves, rank, board) do
     rank_label = (rank + 1) |> to_string()
 
     pieces_text =

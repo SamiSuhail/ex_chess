@@ -55,7 +55,7 @@ defmodule ExChessTest.Arrange do
   end
 
   def game_promote(game, move_text, piece_type) do
-    move = %Move{parse_move(move_text) | detail: {:promotion, piece_type}}
+    move = %Move{parse_move(move_text) | promotion: piece_type}
     Game.move(game, move)
   end
 
