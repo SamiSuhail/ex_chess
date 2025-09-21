@@ -85,3 +85,78 @@ Let's start with the status quo.
 I've been quite performance aware during the development process, but I am also trying to not optimise prematurely. Today is the exact same, before I've even started I can already think of a couple of places where we can optimize for both time and space, but I also won't put too much effort into optimizing where that proves cumbersome.
 
 There will be a blog post entirely focused on performance later on, that is when we'll be getting into the nitty gritty.
+
+## 6.0 - Validation - same color can not move twice in a row
+This is just something I forgot to implement earlier and I noticed it recently. Let's go through it, shouldn't be more than a couple of lines.
+
+### Test
+```elixir
+  test "invalid move - cannot move same color piece twice in a row" do
+    Arrange.new_game()
+    |> Arrange.game_move("a2a4")
+    |> Arrange.game_move("b2b4")
+    |> Assert.invalid_move()
+  end
+```
+
+### Implementation
+First of all, there is a new piece of state we need to track for the Game struct, we'll call it `color_at_play` with a default value of `:white`.
+```diff
+  @type t() :: %__MODULE__{
++         color_at_play: Piece.color(),
+          board: Board.t(),
+          special_rules: SpecialRules.t(),
+        }
+- @enforce_keys [:board, :special_rules]
+- defstruct [:board, :special_rules]
++ @enforce_keys [:color_at_play, :board, :special_rules]
++ defstruct [:color_at_play, :board, :special_rules]
+
+  @spec new() :: t()
+  def new(),
+    do: %__MODULE__{
++     color_at_play: :white,
+      board: Board.new(),
+      special_rules: SpecialRules.new(),
+    }
+```
+
+We now need to make sure that gets updated after every move.
+```elixir
+defmodule ExChess.Game do
+  ...
+  @spec move(t(), Move.t()) :: t() | :error
+  def move(
+        color_at_play: color_at_play,
+        ...
+      ) do
+    with ... do # valid move
+      %__MODULE__{
+        game
+        | ...,
+          color_at_play: Piece.flip_color(color_at_play),
+      }
+    else
+      ...
+    end
+  end
+end
+
+defmodule ExChess.Piece do
+  ...
+  @spec flip_color(color()) :: color()
+  def flip_color(:white), do: :black
+  def flip_color(:black), do: :white
+end
+```
+
+And the last step is to ensure the color at play is also validated.
+
+All we need is to update `Validators.Basic` - let's add a function head.
+```elixir
+  def valid?(%MoveContext{pieces: {%Piece{color: piece_color}, _}, color_at_play: color_at_play})
+      when piece_color != color_at_play,
+      do: false
+```
+
+Well, that and some compiler errors, but I won't bore you with those. Our new test is now passing. Let's get to the fun bit now.

@@ -14,4 +14,8 @@ defmodule ExChess.Piece do
   @spec same_color?(t() | nil, t() | nil) :: boolean()
   def same_color?(%__MODULE__{color: color}, %__MODULE__{color: color}), do: true
   def same_color?(_, _), do: false
+
+  @spec flip_color(color()) :: color()
+  def flip_color(:white), do: :black
+  def flip_color(:black), do: :white
 end

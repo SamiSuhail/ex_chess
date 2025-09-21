@@ -94,6 +94,7 @@ defmodule ExChessTest.QueenTest do
   test "validation - cannot move when path is blocked (black)" do
     game =
       Arrange.new_game()
+      |> Arrange.game_turn(:black)
       |> Arrange.game_board("""
          abcdefgh
         ----------
@@ -108,8 +109,6 @@ defmodule ExChessTest.QueenTest do
         ----------
          abcdefgh
       """)
-
-    Arrange.game_list_legal_moves(game, "d4")
 
     Arrange.game_list_legal_moves(game, "d4")
     |> Assert.legal_moves("""

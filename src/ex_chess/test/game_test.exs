@@ -63,6 +63,13 @@ defmodule ExChessTest.GameTest do
     |> Assert.invalid_move()
   end
 
+  test "invalid move - cannot move same color piece twice in a row" do
+    Arrange.new_game()
+    |> Arrange.game_move("a2a4")
+    |> Arrange.game_move("b2b4")
+    |> Assert.invalid_move()
+  end
+
   test "list legal moves" do
     Arrange.new_game()
     |> Arrange.game_list_legal_moves("b1")

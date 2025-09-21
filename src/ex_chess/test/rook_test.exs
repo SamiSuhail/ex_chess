@@ -94,6 +94,7 @@ defmodule ExChessTest.RookTest do
   test "validation - cannot move when path is blocked (black)" do
     game =
       Arrange.new_game()
+      |> Arrange.game_turn(:black)
       |> Arrange.game_board("""
          abcdefgh
         ----------

@@ -8,9 +8,7 @@ defmodule ExChessTest.Arrange do
     %Game{game | board: board}
   end
 
-  # TODO: this is added to ensure that old tests don't break.
-  # once we implement player turn checking, make sure to set the turn to the color passed in as a parameter.
-  def game_turn(game, _color), do: game
+  def game_turn(game, color), do: %Game{game | color_at_play: color}
 
   defp read_board(board_text) when is_binary(board_text) do
     {board, _} =
