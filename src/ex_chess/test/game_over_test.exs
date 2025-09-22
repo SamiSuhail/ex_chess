@@ -53,4 +53,26 @@ defmodule ExChessTest.GameOverTest do
     |> Arrange.game_move("a4a3")
     |> Assert.stalemate()
   end
+
+  test "insufficient material" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |        | 8
+      7 |        | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |       K| 3
+      2 |r      b| 2
+      1 |K      k| 1
+        ----------
+         abcdefgh
+      """)
+
+    Arrange.game_move(game, "a1a2")
+    |> Assert.insufficient_material()
+  end
 end

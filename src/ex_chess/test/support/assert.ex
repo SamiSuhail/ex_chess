@@ -119,4 +119,8 @@ defmodule ExChessTest.Assert do
   def stalemate({:ok, _game, game_status}) do
     assert game_status == {:tie, :stalemate}
   end
+
+  def insufficient_material({:ok, _game, game_status}) do
+    assert game_status == {:tie, :insufficient_material}
+  end
 end
