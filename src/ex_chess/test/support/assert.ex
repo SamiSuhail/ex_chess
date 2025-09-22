@@ -115,4 +115,8 @@ defmodule ExChessTest.Assert do
   def checkmate({:ok, _game, game_status}, color) do
     assert match?({^color, :checkmate}, game_status)
   end
+
+  def stalemate({:ok, _game, game_status}) do
+    assert game_status == {:tie, :stalemate}
+  end
 end
