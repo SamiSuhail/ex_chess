@@ -1,4 +1,4 @@
-defmodule ExChess.Game.MoveType do
+defmodule ExChessCore.MoveType do
   @type king_special() :: :castle_kingside | :castle_queenside
   @type pawn_special() :: :en_passant
 

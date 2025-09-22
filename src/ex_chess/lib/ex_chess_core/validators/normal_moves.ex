@@ -1,6 +1,6 @@
-defmodule ExChess.Game.Validators.NormalMoves do
-  alias ExChess.Game.{MoveContext, MoveType}
+defmodule ExChessCore.Validators.NormalMoves do
   alias ExChess.{Board, Move, Square, Piece}
+  alias ExChessCore.{MoveContext, MoveType}
   @spec verify(MoveContext.t()) :: nil | {:ok, MoveType.basic()}
   def verify(%MoveContext{
         board: board,

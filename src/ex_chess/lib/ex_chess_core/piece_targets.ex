@@ -1,4 +1,4 @@
-defmodule ExChess.Game.PieceTargets do
+defmodule ExChessCore.PieceTargets do
   alias ExChess.{Move, Square, Piece}
 
   @king_patterns [

@@ -1,6 +1,6 @@
-defmodule ExChess.Game.Validators.SquareUnderAttack do
+defmodule ExChessCore.Validators.SquareUnderAttack do
   alias ExChess.{Board, Move, Square, Piece}
-  alias ExChess.Game.{Validators, MoveContext}
+  alias ExChessCore.{Validators, MoveContext}
 
   @spec evaluate?(Square.t(), Board.t(), Piece.color()) :: boolean()
   def evaluate?(square, board, ally_color) do

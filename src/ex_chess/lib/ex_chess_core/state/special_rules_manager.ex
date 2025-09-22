@@ -1,6 +1,6 @@
-defmodule ExChess.Game.State.SpecialRulesManager do
+defmodule ExChessCore.State.SpecialRulesManager do
   alias ExChess.{SpecialRules, Move, Square, Piece}
-  alias ExChess.Game.MoveType
+  alias ExChessCore.MoveType
 
   @spec update(SpecialRules.t(), Piece.t(), Move.t(), MoveType.t()) :: SpecialRules.t()
   def update(special_rules, piece, move, move_type) do

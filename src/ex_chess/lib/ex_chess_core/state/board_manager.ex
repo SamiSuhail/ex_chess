@@ -1,6 +1,6 @@
-defmodule ExChess.Game.State.BoardManager do
-  alias ExChess.Game.MoveType
+defmodule ExChessCore.State.BoardManager do
   alias ExChess.{Board, Move, Square, Piece}
+  alias ExChessCore.MoveType
 
   @spec update(Board.t(), Piece.t(), Move.t(), MoveType.t()) :: Board.t()
   def update(

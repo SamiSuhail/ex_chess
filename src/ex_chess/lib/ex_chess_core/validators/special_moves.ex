@@ -1,5 +1,5 @@
-defmodule ExChess.Game.Validators.SpecialMoves do
-  alias ExChess.Game.{Validators, MoveContext, MoveType}
+defmodule ExChessCore.Validators.SpecialMoves do
+  alias ExChessCore.{Validators, MoveContext, MoveType}
   alias ExChess.{Board, SpecialRules, Move, Square, Piece}
 
   @spec verify(MoveContext.t()) :: nil | {:ok, MoveType.special()}

@@ -1,7 +1,7 @@
 defmodule ExChessTest.Arrange do
   alias ExChess.{Game, Move, Square, Piece}
 
-  def new_game(), do: Game.new()
+  def new_game(), do: ExChess.start_game()
 
   def game_board(game, board_text) do
     board = read_board(board_text)
@@ -51,12 +51,12 @@ defmodule ExChessTest.Arrange do
 
   def game_move(game, move_text) do
     move = parse_move(move_text)
-    Game.move(game, move)
+    ExChess.move(game, move)
   end
 
   def game_promote(game, move_text, piece_type) do
     move = %Move{parse_move(move_text) | promotion: piece_type}
-    Game.move(game, move)
+    ExChess.move(game, move)
   end
 
   defp parse_move(<<
@@ -71,7 +71,7 @@ defmodule ExChessTest.Arrange do
 
   def game_list_legal_moves(game, square_text) do
     square = text_to_square(square_text)
-    legal_moves = Game.list_legal_moves(game, square)
+    legal_moves = ExChess.list_legal_moves(game, square)
     {game, legal_moves}
   end
 

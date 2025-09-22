@@ -1,4 +1,4 @@
-defmodule ExChess.Game.MoveContext do
+defmodule ExChessCore.MoveContext do
   alias ExChess.{Board, SpecialRules, Move, Piece}
 
   @type pieces() :: {Piece.t() | nil, Piece.t() | nil}

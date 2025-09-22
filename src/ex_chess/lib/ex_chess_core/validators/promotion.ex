@@ -1,4 +1,4 @@
-defmodule ExChess.Game.Validators.Promotion do
+defmodule ExChessCore.Validators.Promotion do
   alias ExChess.{Move, Piece}
   @valid_pawn_promotion_types [:q, :r, :b, :n]
 

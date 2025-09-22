@@ -1,6 +1,6 @@
-defmodule ExChess.Game.Validators.Basic do
+defmodule ExChessCore.Validators.Basic do
   alias ExChess.{Move, Square, Piece}
-  alias ExChess.Game.MoveContext
+  alias ExChessCore.MoveContext
 
   def valid?(%MoveContext{pieces: {nil, _}}),
     do: false

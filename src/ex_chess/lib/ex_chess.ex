@@ -1,5 +1,5 @@
-defmodule ExChess.Game do
-  alias ExChess.Game.{
+defmodule ExChess do
+  alias ExChessCore.{
     Validators,
     MoveContext,
     State.SpecialRulesManager,
@@ -7,39 +7,29 @@ defmodule ExChess.Game do
     PieceTargets
   }
 
-  alias ExChess.{SpecialRules, Board, Move, Square}
+  alias ExChess.{Game, Board, Move, Square}
 
-  @type t() :: %__MODULE__{
-          board: Board.t(),
-          special_rules: SpecialRules.t(),
-        }
-  @enforce_keys [:board]
-  defstruct [:board, special_rules: SpecialRules.new()]
+  @spec start_game() :: Game.t()
+  def start_game(), do: Game.new()
 
-  @spec new() :: t()
-  def new(),
-    do: %__MODULE__{
-      board: Board.new(),
-    }
-
-  @spec move(t(), Move.t()) :: t() | :error
+  @spec move(Game.t(), Move.t()) :: Game.t() | :error
   def move(
-        game = %__MODULE__{board: board, special_rules: special_rules},
+        game = %Game{board: board, special_rules: special_rules},
         move = %Move{}
       ) do
     with piece = Board.get(board, move.from),
          true <- Validators.Promotion.valid?(piece, move),
          {:ok, move_type, updated_board} <- evaluate_move(move, piece, board, special_rules),
          updated_special_rules = SpecialRulesManager.update(special_rules, piece, move, move_type) do
-      %__MODULE__{game | board: updated_board, special_rules: updated_special_rules}
+      %Game{game | board: updated_board, special_rules: updated_special_rules}
     else
       _ -> :error
     end
   end
 
-  @spec list_legal_moves(t(), Square.t()) :: [Square.t()]
+  @spec list_legal_moves(Game.t(), Square.t()) :: [Square.t()]
   def list_legal_moves(
-        %__MODULE__{board: board, special_rules: special_rules},
+        %Game{board: board, special_rules: special_rules},
         from_square = %Square{}
       ) do
     piece = Board.get(board, from_square)
