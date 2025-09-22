@@ -1,6 +1,6 @@
-defmodule ExChessCore.Validators.SquareUnderAttack do
+defmodule ExChessCore.MoveEvaluation.SquareUnderAttack do
   alias ExChess.{Board, Move, Square, Piece}
-  alias ExChessCore.{Validators, MoveContext}
+  alias ExChessCore.{MoveEvaluation, MoveContext}
 
   @spec evaluate?(Square.t(), Board.t(), Piece.color()) :: boolean()
   def evaluate?(square, board, ally_color) do
@@ -12,7 +12,8 @@ defmodule ExChessCore.Validators.SquareUnderAttack do
       move = Move.new(enemy_square, square)
       move_context = MoveContext.new(enemy_color, board, move, enemy_piece)
 
-      case Validators.Basic.valid?(move_context) && Validators.NormalMoves.verify(move_context) do
+      case MoveEvaluation.Basic.valid?(move_context) &&
+             MoveEvaluation.NormalMoves.verify(move_context) do
         {:ok, _} -> true
         _ -> false
       end

@@ -160,3 +160,53 @@ All we need is to update `Validators.Basic` - let's add a function head.
 ```
 
 Well, that and some compiler errors, but I won't bore you with those. Our new test is now passing. Let's get to the fun bit now.
+
+## 6.1 - Checkmate
+The classic way of beating your opponent - put the opponent's king in check, and ensure they have no possible move that would end with their king out of harm's way.
+
+### Test
+```elixir
+  test "checkmate" do
+    game =
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |       k| 8
+      7 | R      | 7
+      6 |R       | 6
+      5 |pp      | 5
+      4 |PP      | 4
+      3 |r       | 3
+      2 | r      | 2
+      1 |       K| 1
+        ----------
+         abcdefgh
+      """)
+
+    Arrange.game_move(game, "a6a8")
+    |> Assert.checkmate(:white)
+
+    Arrange.game_turn(game, :black)
+    |> Arrange.game_move("a3a1")
+    |> Assert.checkmate(:black)
+  end
+```
+
+### Implementation
+Okay this is an interesting decision we need to make - how do we signal to the software using our library that the game is complete.
+
+Do we just add additional state to the `Game` struct and rely on 
+
+
+- 6.2 - Stalemate
+- 6.3 - Insufficient material
+- 6.4 - Threefold repetition
+- 6.5 - 50-move rule
+
+threefold repetition
+    reset tracker on
+        piece taken
+        pawn moved
+        castle rights change
+    tracker per player

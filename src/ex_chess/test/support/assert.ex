@@ -4,7 +4,7 @@ defmodule ExChessTest.Assert do
 
   @rank_joiner "\n"
   @file_joiner ""
-  def game_board(_game = %Game{board: board}, expected_board_string) do
+  def game_board({:ok, %Game{board: board}, _game_status}, expected_board_string) do
     ranks_text =
       7..0//-1
       |> Enum.map(fn rank -> game_board_rank(rank, board) end)
@@ -111,4 +111,8 @@ defmodule ExChessTest.Assert do
   defp file_to_text(7), do: "h"
 
   defp rank_to_text(rank), do: "#{rank + 1}"
+
+  def checkmate({:ok, _game, game_status}, color) do
+    assert match?({^color, :checkmate}, game_status)
+  end
 end

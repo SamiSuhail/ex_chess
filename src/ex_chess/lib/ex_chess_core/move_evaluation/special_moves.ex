@@ -1,5 +1,5 @@
-defmodule ExChessCore.Validators.SpecialMoves do
-  alias ExChessCore.{Validators, MoveContext, MoveType}
+defmodule ExChessCore.MoveEvaluation.SpecialMoves do
+  alias ExChessCore.{MoveEvaluation, MoveContext, MoveType}
   alias ExChess.{Board, SpecialRules, Move, Square, Piece}
 
   @spec verify(MoveContext.t()) :: nil | {:ok, MoveType.special()}
@@ -112,7 +112,7 @@ defmodule ExChessCore.Validators.SpecialMoves do
     any_square_attacked? =
       0..(2 * direction)//direction
       |> Enum.map(&Square.shift(from, &1, 0))
-      |> Enum.any?(&Validators.SquareUnderAttack.evaluate?(&1, board, ally_color))
+      |> Enum.any?(&MoveEvaluation.SquareUnderAttack.evaluate?(&1, board, ally_color))
 
     not any_square_attacked?
   end

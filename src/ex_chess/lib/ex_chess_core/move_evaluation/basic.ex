@@ -1,4 +1,4 @@
-defmodule ExChessCore.Validators.Basic do
+defmodule ExChessCore.MoveEvaluation.Basic do
   alias ExChess.{Move, Square, Piece}
   alias ExChessCore.MoveContext
 
