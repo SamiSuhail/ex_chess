@@ -1,9 +1,14 @@
 defmodule ExChessCore.GameStatusEvaluation do
   alias ExChessCore.{MoveGeneration, MoveEvaluation}
-  alias ExChess.{GameStatus, SpecialRules, Board, Piece}
+  alias ExChess.{Game, RepetitionTracker, SpecialRules, Board, Piece}
 
-  @spec evaluate(Piece.color(), Board.t(), SpecialRules.t()) :: GameStatus.t()
-  def evaluate(ally_color, board, special_rules) do
+  @spec evaluate(Piece.color(), Board.t(), SpecialRules.t(), RepetitionTracker.count()) ::
+          Game.status()
+  def evaluate(_ally_color, _board, _special_rules, repetitions_count)
+      when repetitions_count >= 3,
+      do: {:tie, :threefold_repetition}
+
+  def evaluate(ally_color, board, special_rules, _repetitions_count) do
     enemy_color = Piece.flip_color(ally_color)
 
     enemy_pieces = Board.get_pieces_by_color(board, enemy_color)

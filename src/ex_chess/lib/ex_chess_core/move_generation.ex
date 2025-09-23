@@ -8,7 +8,7 @@ defmodule ExChessCore.MoveGeneration do
     targets(piece, from_square)
     |> Stream.filter(fn to_square ->
       move = Move.new(from_square, to_square)
-      match?({:ok, _, _}, MoveEvaluation.run(color_at_play, board, special_rules, piece, move))
+      match?({:ok, _, _, _}, MoveEvaluation.run(color_at_play, board, special_rules, piece, move))
     end)
   end
 

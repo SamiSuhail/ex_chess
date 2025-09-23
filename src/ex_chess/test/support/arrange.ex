@@ -3,13 +3,13 @@ defmodule ExChessTest.Arrange do
 
   def new_game(), do: ExChess.start_game()
 
-  def game_board({:ok, game, game_status}, board_text) do
+  def game_board(game, board_text) do
     board = read_board(board_text)
-    {:ok, %Game{game | board: board}, game_status}
+    %Game{game | board: board}
   end
 
-  def game_turn({:ok, game, game_status}, color),
-    do: {:ok, %Game{game | color_at_play: color}, game_status}
+  def game_turn(game, color),
+    do: %Game{game | color_at_play: color}
 
   defp read_board(board_text) when is_binary(board_text) do
     {board, _} =
@@ -48,12 +48,21 @@ defmodule ExChessTest.Arrange do
   defp symbol_to_piece("K"), do: Piece.new(:k, :white)
   defp symbol_to_piece("k"), do: Piece.new(:k, :black)
 
-  def game_move({:ok, game, _game_status}, move_text) do
+  def game_moves(game, moves_text) do
+    moves_text
+    |> String.split("\n", trim: true)
+    |> Enum.flat_map(&String.split(&1, " ", trim: true))
+    |> Enum.reduce(game, fn move_text, curr_game ->
+      game_move(curr_game, move_text)
+    end)
+  end
+
+  def game_move(game, move_text) do
     move = parse_move(move_text)
     ExChess.move(game, move)
   end
 
-  def game_promote({:ok, game, _game_status}, move_text, piece_type) do
+  def game_promote(game, move_text, piece_type) do
     move = %Move{parse_move(move_text) | promotion: piece_type}
     ExChess.move(game, move)
   end
@@ -68,7 +77,7 @@ defmodule ExChessTest.Arrange do
     Move.new(from_square, to_square)
   end
 
-  def game_list_legal_moves({:ok, game, _game_status}, square_text) do
+  def game_list_legal_moves(game, square_text) do
     square = text_to_square(square_text)
     legal_moves = ExChess.list_legal_moves(game, square)
     {game, legal_moves}

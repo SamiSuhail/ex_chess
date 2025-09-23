@@ -9,7 +9,7 @@ defmodule ExChessCore.MoveEvaluation do
           SpecialRules.t() | nil,
           Piece.t() | nil,
           Move.t()
-        ) :: :error | {:ok, MoveType.t(), Board.t()}
+        ) :: :error | {:ok, MoveType.t(), MoveContext.t(), Board.t()}
   def run(color_at_play, board, special_rules, piece, move) do
     with move_context = MoveContext.new(color_at_play, board, move, piece, special_rules),
          true <- Basic.valid?(move_context),
@@ -18,7 +18,7 @@ defmodule ExChessCore.MoveEvaluation do
            normal_moves_result || SpecialMoves.verify(move_context),
          updated_board = BoardManager.update(board, piece, move, move_type),
          false <- SquareUnderAttack.king?(updated_board, piece.color) do
-      {:ok, move_type, updated_board}
+      {:ok, move_type, move_context, updated_board}
     else
       _ -> :error
     end

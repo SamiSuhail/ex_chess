@@ -75,4 +75,27 @@ defmodule ExChessTest.GameOverTest do
     Arrange.game_move(game, "a1a2")
     |> Assert.insufficient_material()
   end
+
+  test "threefold repetition" do
+    Arrange.new_game()
+    |> Arrange.game_moves("""
+    b1c3 b8c6
+    c3b1 c6b8
+    b1c3 b8c6
+    c3b1 c6b8
+    """)
+    |> Assert.threefold_repetition()
+  end
+
+  test "validation - cannot move if game completed" do
+    Arrange.new_game()
+    |> Arrange.game_moves("""
+    b1c3 b8c6
+    c3b1 c6b8
+    b1c3 b8c6
+    c3b1 c6b8
+    b1c3
+    """)
+    |> Assert.invalid_move()
+  end
 end
