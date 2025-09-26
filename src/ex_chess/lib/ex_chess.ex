@@ -1,14 +1,12 @@
 defmodule ExChess do
   alias ExChessCore.{
     MoveContext,
-    State.SpecialRulesManager,
-    State.RepetitionTrackersManager,
+    State.GameManager,
     MoveEvaluation,
-    MoveGeneration,
-    GameStatusEvaluation
+    MoveGeneration
   }
 
-  alias ExChess.{Game, Board, Move, Square, Piece}
+  alias ExChess.{Game, Board, Move, Square}
 
   @spec start_game() :: Game.t()
   def start_game(), do: Game.new()
@@ -21,9 +19,7 @@ defmodule ExChess do
           board: board,
           color_at_play: color_at_play,
           _private: %{
-            repetition_trackers: repetition_trackers,
             special_rules: special_rules,
-            halfmove_clock: halfmove_clock,
           },
         },
         move = %Move{}
@@ -31,45 +27,8 @@ defmodule ExChess do
     with piece = Board.get(board, move.from),
          true <- MoveEvaluation.Promotion.valid?(piece, move),
          {:ok, move_type, %MoveContext{pieces: {_, enemy_piece}}, updated_board} <-
-           MoveEvaluation.run(color_at_play, board, special_rules, piece, move),
-         updated_special_rules =
-           SpecialRulesManager.update(special_rules, piece, move, move_type) do
-      enemy_color = Piece.flip_color(color_at_play)
-
-      reversible_move? = is_nil(enemy_piece) and piece.type != :p
-
-      {updated_repetition_trackers, repetitions_count} =
-        RepetitionTrackersManager.update(
-          repetition_trackers,
-          enemy_color,
-          updated_board,
-          reversible_move?,
-          special_rules.castling_rights,
-          updated_special_rules.castling_rights
-        )
-
-      game_status =
-        GameStatusEvaluation.evaluate(
-          piece.color,
-          updated_board,
-          updated_special_rules,
-          repetitions_count
-        )
-
-      updated_halfmove_clock = (reversible_move? && halfmove_clock + 1) || 0
-
-      %Game{
-        game
-        | board: updated_board,
-          color_at_play: enemy_color,
-          status: game_status,
-          draw_claimable?: updated_halfmove_clock >= 100,
-          _private: %{
-            special_rules: updated_special_rules,
-            repetition_trackers: updated_repetition_trackers,
-            halfmove_clock: updated_halfmove_clock,
-          },
-      }
+           MoveEvaluation.run(color_at_play, board, special_rules, piece, move) do
+      GameManager.update(game, updated_board, move, move_type, piece, enemy_piece)
     else
       _ -> :error
     end

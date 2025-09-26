@@ -1,4 +1,4 @@
-defmodule ExChessCore.State.RepetitionTrackersManager do
+defmodule ExChessCore.State.GameManager.RepetitionTrackersManager do
   alias ExChess.RepetitionTracker
   alias ExChess.{Game, SpecialRules, Board, Piece}
 

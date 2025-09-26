@@ -1,4 +1,4 @@
-defmodule ExChessCore.State.SpecialRulesManager do
+defmodule ExChessCore.State.GameManager.SpecialRulesManager do
   alias ExChess.{SpecialRules, Move, Square, Piece}
   alias ExChessCore.MoveType
 

@@ -1,4 +1,4 @@
-defmodule ExChessCore.GameStatusEvaluation do
+defmodule ExChessCore.State.GameManager.GameStatusEvaluation do
   alias ExChessCore.{MoveGeneration, MoveEvaluation}
   alias ExChess.{Game, RepetitionTracker, SpecialRules, Board, Piece}
 
