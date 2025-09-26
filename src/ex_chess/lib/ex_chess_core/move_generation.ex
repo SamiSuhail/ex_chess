@@ -1,5 +1,16 @@
-defmodule ExChessCore.PieceTargets do
-  alias ExChess.{Move, Square, Piece}
+defmodule ExChessCore.MoveGeneration do
+  alias ExChess.{Board, SpecialRules, Move, Square, Piece}
+  alias ExChessCore.MoveEvaluation
+
+  @spec stream(Piece.color(), Board.t(), SpecialRules.t(), Piece.t(), Square.t()) ::
+          Enumerable.t(Square.t())
+  def stream(color_at_play, board, special_rules, piece, from_square) do
+    targets(piece, from_square)
+    |> Stream.filter(fn to_square ->
+      move = Move.new(from_square, to_square)
+      match?({:ok, _, _, _}, MoveEvaluation.run(color_at_play, board, special_rules, piece, move))
+    end)
+  end
 
   @king_patterns [
     {-1, -1},
@@ -68,10 +79,9 @@ defmodule ExChessCore.PieceTargets do
     {-1, -1},
   ]
 
-  @spec get(Piece.t() | nil, Square.t()) :: [Move.t()]
-  def get(piece, from_square) do
+  defp targets(piece, from_square) do
     patterns(piece)
-    |> Enum.map(fn {file_shift, rank_shift} ->
+    |> Stream.map(fn {file_shift, rank_shift} ->
       Square.shift(from_square, file_shift, rank_shift)
     end)
   end

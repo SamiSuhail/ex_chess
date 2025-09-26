@@ -66,4 +66,9 @@ defmodule ExChess.Board do
       ) do
     board |> Map.delete(square)
   end
+
+  @spec get_pieces_by_color(t(), Piece.color()) :: [{Square.t(), Piece.t()}]
+  def get_pieces_by_color(board = %{}, color) do
+    Enum.filter(board, fn {_square, piece} -> piece.color == color end)
+  end
 end

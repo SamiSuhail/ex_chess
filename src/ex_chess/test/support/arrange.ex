@@ -8,9 +8,8 @@ defmodule ExChessTest.Arrange do
     %Game{game | board: board}
   end
 
-  # TODO: this is added to ensure that old tests don't break.
-  # once we implement player turn checking, make sure to set the turn to the color passed in as a parameter.
-  def game_turn(game, _color), do: game
+  def game_turn(game, color),
+    do: %Game{game | color_at_play: color}
 
   defp read_board(board_text) when is_binary(board_text) do
     {board, _} =
@@ -48,6 +47,15 @@ defmodule ExChessTest.Arrange do
   defp symbol_to_piece("q"), do: Piece.new(:q, :black)
   defp symbol_to_piece("K"), do: Piece.new(:k, :white)
   defp symbol_to_piece("k"), do: Piece.new(:k, :black)
+
+  def game_moves(game, moves_text) do
+    moves_text
+    |> String.split("\n", trim: true)
+    |> Enum.flat_map(&String.split(&1, " ", trim: true))
+    |> Enum.reduce(game, fn move_text, curr_game ->
+      game_move(curr_game, move_text)
+    end)
+  end
 
   def game_move(game, move_text) do
     move = parse_move(move_text)
@@ -91,4 +99,12 @@ defmodule ExChessTest.Arrange do
   defp file_to_index("h"), do: 7
 
   defp rank_to_index(rank_text), do: String.to_integer(rank_text) - 1
+
+  def claim_draw(game) do
+    ExChess.claim_draw(game)
+  end
+
+  def resign(game) do
+    ExChess.resign(game)
+  end
 end
