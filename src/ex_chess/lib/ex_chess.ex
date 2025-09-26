@@ -6,7 +6,7 @@ defmodule ExChess do
     MoveGeneration
   }
 
-  alias ExChess.{Game, Board, Move, Square}
+  alias ExChess.{Game, Board, Move, Square, Piece}
 
   @spec start_game() :: Game.t()
   def start_game(), do: Game.new()
@@ -53,4 +53,10 @@ defmodule ExChess do
   def claim_draw(%Game{status: status}) when status != :continue, do: :error
   def claim_draw(%Game{draw_claimable?: false}), do: :error
   def claim_draw(game = %Game{}), do: %Game{game | status: {:tie, :fifty_move_rule}}
+
+  @spec resign(Game.t()) :: Game.t() | :error
+  def resign(%Game{status: status}) when status != :continue, do: :error
+
+  def resign(game = %Game{color_at_play: color}),
+    do: %Game{game | status: {Piece.flip_color(color), :resignation}}
 end

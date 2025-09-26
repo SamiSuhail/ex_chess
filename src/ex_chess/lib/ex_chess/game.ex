@@ -3,7 +3,7 @@ defmodule ExChess.Game do
 
   @type status() ::
           :continue
-          | {Piece.color(), :checkmate}
+          | {Piece.color(), :checkmate | :resignation}
           | {:tie, :stalemate | :insufficient_material | :threefold_repetition | :fifty_move_rule}
 
   @type repetition_trackers() :: %{black: RepetitionTracker.t(), white: RepetitionTracker.t()}

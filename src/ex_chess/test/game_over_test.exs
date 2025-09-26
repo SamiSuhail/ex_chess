@@ -28,6 +28,30 @@ defmodule ExChessTest.GameOverTest do
     |> Assert.checkmate(:black)
   end
 
+  test "resignation" do
+    Arrange.new_game()
+    |> Arrange.resign()
+    |> Assert.resignation(:black)
+
+    Arrange.new_game()
+    |> Arrange.game_move("a2a3")
+    |> Arrange.resign()
+    |> Assert.resignation(:white)
+  end
+
+  test "validation - cannot move after resignation" do
+    Arrange.new_game()
+    |> Arrange.resign()
+    |> Arrange.game_move("a2a3")
+    |> Assert.invalid_move()
+
+    Arrange.new_game()
+    |> Arrange.game_move("a2a3")
+    |> Arrange.resign()
+    |> Arrange.game_move("a7a6")
+    |> Assert.invalid_move()
+  end
+
   test "stalemate" do
     game =
       Arrange.new_game()

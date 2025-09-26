@@ -69,6 +69,7 @@ The meat today is split into 5 parts - one for each possible game completion sce
 - 6.3 - Insufficient material
 - 6.4 - Threefold repetition
 - 6.5 - 50-move rule
+- 6.6 - Resignation
 
 Before we start I want to say a few words about performance. 
 
@@ -203,10 +204,4 @@ Do we just add additional state to the `Game` struct and rely on
 - 6.3 - Insufficient material
 - 6.4 - Threefold repetition
 - 6.5 - 50-move rule
-
-threefold repetition
-    reset tracker on
-        piece taken
-        pawn moved
-        castle rights change
-    tracker per player
+- 6.6 - Resignation

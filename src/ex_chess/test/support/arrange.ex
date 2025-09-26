@@ -103,4 +103,8 @@ defmodule ExChessTest.Arrange do
   def claim_draw(game) do
     ExChess.claim_draw(game)
   end
+
+  def resign(game) do
+    ExChess.resign(game)
+  end
 end

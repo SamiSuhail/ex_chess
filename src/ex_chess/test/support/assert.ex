@@ -116,6 +116,10 @@ defmodule ExChessTest.Assert do
     assert match?({^color, :checkmate}, game_status)
   end
 
+  def resignation(%Game{status: game_status}, color) do
+    assert match?({^color, :resignation}, game_status)
+  end
+
   def stalemate(%Game{status: game_status}) do
     assert game_status == {:tie, :stalemate}
   end
