@@ -99,4 +99,8 @@ defmodule ExChessTest.Arrange do
   defp file_to_index("h"), do: 7
 
   defp rank_to_index(rank_text), do: String.to_integer(rank_text) - 1
+
+  def claim_draw(game) do
+    ExChess.claim_draw(game)
+  end
 end

@@ -6,8 +6,7 @@ defmodule ExChessCore.State.RepetitionTrackersManager do
           Game.repetition_trackers(),
           Piece.color(),
           Board.t(),
-          Piece.t(),
-          Piece.t() | nil,
+          boolean(),
           SpecialRules.castling_rights(),
           SpecialRules.castling_rights()
         ) ::
@@ -16,15 +15,11 @@ defmodule ExChessCore.State.RepetitionTrackersManager do
         repetition_trackers,
         enemy_color,
         updated_board,
-        ally_piece,
-        enemy_piece,
+        reversible_move?,
         castling_rights,
         updated_castling_rights
       ) do
-    reset_trackers? =
-      not is_nil(enemy_piece) or
-        match?(%Piece{type: :p}, ally_piece) or
-        castling_rights != updated_castling_rights
+    reset_trackers? = not reversible_move? or castling_rights != updated_castling_rights
 
     repetition_trackers =
       if reset_trackers? do

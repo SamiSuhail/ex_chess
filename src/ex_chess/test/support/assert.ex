@@ -127,4 +127,8 @@ defmodule ExChessTest.Assert do
   def threefold_repetition(%Game{status: game_status}) do
     assert game_status == {:tie, :threefold_repetition}
   end
+
+  def fifty_move_rule(%Game{status: game_status}) do
+    assert game_status == {:tie, :fifty_move_rule}
+  end
 end

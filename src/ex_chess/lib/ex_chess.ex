@@ -23,6 +23,7 @@ defmodule ExChess do
           _private: %{
             repetition_trackers: repetition_trackers,
             special_rules: special_rules,
+            halfmove_clock: halfmove_clock,
           },
         },
         move = %Move{}
@@ -35,13 +36,14 @@ defmodule ExChess do
            SpecialRulesManager.update(special_rules, piece, move, move_type) do
       enemy_color = Piece.flip_color(color_at_play)
 
+      reversible_move? = is_nil(enemy_piece) and piece.type != :p
+
       {updated_repetition_trackers, repetitions_count} =
         RepetitionTrackersManager.update(
           repetition_trackers,
           enemy_color,
           updated_board,
-          piece,
-          enemy_piece,
+          reversible_move?,
           special_rules.castling_rights,
           updated_special_rules.castling_rights
         )
@@ -54,18 +56,20 @@ defmodule ExChess do
           repetitions_count
         )
 
-      game = %Game{
+      updated_halfmove_clock = (reversible_move? && halfmove_clock + 1) || 0
+
+      %Game{
         game
         | board: updated_board,
           color_at_play: enemy_color,
           status: game_status,
+          draw_claimable?: updated_halfmove_clock >= 100,
           _private: %{
             special_rules: updated_special_rules,
             repetition_trackers: updated_repetition_trackers,
+            halfmove_clock: updated_halfmove_clock,
           },
       }
-
-      game
     else
       _ -> :error
     end
@@ -76,7 +80,7 @@ defmodule ExChess do
         %Game{
           board: board,
           _private: %{special_rules: special_rules},
-          color_at_play: color_at_play
+          color_at_play: color_at_play,
         },
         from_square = %Square{}
       ) do
@@ -85,4 +89,9 @@ defmodule ExChess do
     MoveGeneration.stream(color_at_play, board, special_rules, piece, from_square)
     |> Enum.to_list()
   end
+
+  @spec claim_draw(Game.t()) :: Game.t() | :error
+  def claim_draw(%Game{status: status}) when status != :continue, do: :error
+  def claim_draw(%Game{draw_claimable?: false}), do: :error
+  def claim_draw(game = %Game{}), do: %Game{game | status: {:tie, :fifty_move_rule}}
 end
