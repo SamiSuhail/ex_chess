@@ -1,14 +1,37 @@
 defmodule ExChessCore.MoveGeneration do
-  alias ExChess.{Board, SpecialRules, Move, Square, Piece}
-  alias ExChessCore.MoveEvaluation
+  alias ExChess.{Game, Board, Move, Square, Piece}
+  alias ExChessCore.{MoveContext, MoveEvaluation}
 
-  @spec stream(Piece.color(), Board.t(), SpecialRules.t(), Piece.t(), Square.t()) ::
+  @spec stream(
+          Piece.color(),
+          Board.t(),
+          Game.en_passant_file(),
+          Game.castling_rights(),
+          Piece.t(),
+          Square.t()
+        ) ::
           Enumerable.t(Square.t())
-  def stream(color_at_play, board, special_rules, piece, from_square) do
-    targets(piece, from_square)
-    |> Stream.filter(fn to_square ->
-      move = Move.new(from_square, to_square)
-      match?({:ok, _, _, _}, MoveEvaluation.run(color_at_play, board, special_rules, piece, move))
+  def stream(color, board, en_passant_file, castling_rights, piece, square) do
+    targets(piece, square)
+    |> Enum.to_list()
+    |> Stream.filter(fn target_square ->
+      game = %Game{
+        status: :continue,
+        color_at_play: color,
+        board: board,
+        castling_rights: castling_rights,
+        en_passant_file: en_passant_file,
+        halfmove_clock: 0,
+        repetition_history: %{},
+      }
+
+      move = Move.new(square, target_square)
+      move_context = MoveContext.new(game, move)
+
+      match?(
+        %MoveContext{valid?: true},
+        MoveEvaluation.run(move_context)
+      )
     end)
   end
 

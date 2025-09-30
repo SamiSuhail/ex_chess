@@ -123,79 +123,9 @@ defmodule ExChessTest.GameOverTest do
     |> Assert.invalid_move()
   end
 
-  # this sequence makes the kings do two loops around the edges of the board and end up in the same position
-  @fifty_move_rule_game Arrange.new_game()
-                        |> Arrange.game_board("""
-                             abcdefgh
-                            ----------
-                          8 |n      k| 8
-                          7 |p       | 7
-                          6 |        | 6
-                          5 |        | 5
-                          4 |        | 4
-                          3 |        | 3
-                          2 |       P| 2
-                          1 |K      N| 1
-                            ----------
-                             abcdefgh
-                        """)
-                        |> Arrange.game_moves("""
-                        a1b1 h8g8
-                        b1c1 g8f8
-                        c1d1 f8e8
-                        d1e1 e8d8
-                        e1f1 d8c8
-                        f1g1 c8b8
-                        g1g2 b8b7
-                        g2h3 b7a6
-                        h3h4 a6a5
-                        h4h5 a5a4
-                        h5h6 a4a3
-                        h6h7 a3a2
-                        h7h8 a2a1
-                        h8g8 a1b1
-                        g8f8 b1c1
-                        f8e8 c1d1
-                        e8d8 d1e1
-                        d8c8 e1f1
-                        c8b8 f1g1
-                        b8b7 g1g2
-                        b7a6 g2h3
-                        a6a5 h3h4
-                        a5a4 h4h5
-                        a4a3 h5h6
-                        a3a2 h6h7
-                        a2a1 h7h8
-                        a1b1 h8g8
-                        b1c1 g8f8
-                        c1d1 f8e8
-                        d1e1 e8d8
-                        e1f1 d8c8
-                        f1g1 c8b8
-                        g1g2 b8b7
-                        g2h3 b7a6
-                        h3h4 a6a5
-                        h4h5 a5a4
-                        h5h6 a4a3
-                        h6h7 a3a2
-                        h7h8 a2a1
-                        h8g8 a1b1
-                        g8f8 b1c1
-                        f8e8 c1d1
-                        e8d8 d1e1
-                        d8c8 e1f1
-                        c8b8 f1g1
-                        b8b7 g1g2
-                        b7a6 g2h3
-                        a6a5 h3h4
-                        a5a4 h4h5
-                        a4a3 h5h6
-                        a3a2 h6h7
-                        a2a1 h7h8
-                        """)
-
   test "50 move rule" do
-    Arrange.claim_draw(@fifty_move_rule_game)
+    fifty_move_rule_game()
+    |> Arrange.claim_draw()
     |> Assert.fifty_move_rule()
   end
 
@@ -206,8 +136,82 @@ defmodule ExChessTest.GameOverTest do
   end
 
   test "validation - cannot claim draw when halfclock reset" do
-    Arrange.game_move(@fifty_move_rule_game, "h2h3")
+    fifty_move_rule_game()
+    |> Arrange.game_move("h2h3")
     |> Arrange.claim_draw()
     |> Assert.invalid_move()
+  end
+
+  # this sequence makes the kings do two loops around the edges of the board and end up in the same position
+  defp fifty_move_rule_game() do
+    Arrange.new_game()
+    |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |n      k| 8
+      7 |p       | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |       P| 2
+      1 |K      N| 1
+        ----------
+         abcdefgh
+    """)
+    |> Arrange.game_moves("""
+    a1b1 h8g8
+    b1c1 g8f8
+    c1d1 f8e8
+    d1e1 e8d8
+    e1f1 d8c8
+    f1g1 c8b8
+    g1g2 b8b7
+    g2h3 b7a6
+    h3h4 a6a5
+    h4h5 a5a4
+    h5h6 a4a3
+    h6h7 a3a2
+    h7h8 a2a1
+    h8g8 a1b1
+    g8f8 b1c1
+    f8e8 c1d1
+    e8d8 d1e1
+    d8c8 e1f1
+    c8b8 f1g1
+    b8b7 g1g2
+    b7a6 g2h3
+    a6a5 h3h4
+    a5a4 h4h5
+    a4a3 h5h6
+    a3a2 h6h7
+    a2a1 h7h8
+    a1b1 h8g8
+    b1c1 g8f8
+    c1d1 f8e8
+    d1e1 e8d8
+    e1f1 d8c8
+    f1g1 c8b8
+    g1g2 b8b7
+    g2h3 b7a6
+    h3h4 a6a5
+    h4h5 a5a4
+    h5h6 a4a3
+    h6h7 a3a2
+    h7h8 a2a1
+    h8g8 a1b1
+    g8f8 b1c1
+    f8e8 c1d1
+    e8d8 d1e1
+    d8c8 e1f1
+    c8b8 f1g1
+    b8b7 g1g2
+    b7a6 g2h3
+    a6a5 h3h4
+    a5a4 h4h5
+    a4a3 h5h6
+    a3a2 h6h7
+    a2a1 h7h8
+    """)
   end
 end

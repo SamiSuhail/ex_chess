@@ -1,7 +1,7 @@
 defmodule ExChess.Move do
   alias ExChess.Square
 
-  @type promotion() :: nil | :q | :r | :b | :n
+  @type promotion() :: :q | :r | :b | :n
   @type t() :: %__MODULE__{
           from: Square.t(),
           to: Square.t(),
@@ -11,6 +11,6 @@ defmodule ExChess.Move do
   defstruct [:from, :to, :promotion]
 
   @spec new(Square.t(), Square.t(), promotion()) :: t()
-  def new(from, to, promotion \\ nil),
+  def new(from, to, promotion \\ :q),
     do: %__MODULE__{from: from, to: to, promotion: promotion}
 end

@@ -14,7 +14,7 @@ defmodule ExChessTest.KingTest do
       5 |        | 5
       4 |   K    | 4
       3 |        | 3
-      2 |        | 2
+      2 |P       | 2
       1 |        | 1
         ----------
          abcdefgh

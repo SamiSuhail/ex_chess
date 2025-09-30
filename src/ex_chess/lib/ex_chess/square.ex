@@ -17,6 +17,9 @@ defmodule ExChess.Square do
         rank: square.rank + rank_shift,
     }
 
+  @spec valid?(t()) :: boolean()
+  def valid?(_square = %__MODULE__{file: file, rank: rank}), do: file in 0..7 and rank in 0..7
+
   @spec same_location?(t(), t()) :: boolean()
   def same_location?(%__MODULE__{file: file, rank: rank}, %__MODULE__{file: file, rank: rank}),
     do: true

@@ -1,44 +1,78 @@
 defmodule ExChessCore.State.BoardManager do
-  alias ExChess.{Board, Move, Square, Piece}
-  alias ExChessCore.MoveType
+  alias ExChessCore.MoveContext
+  alias ExChess.{Board, Square, Piece}
 
-  @spec update(Board.t(), Piece.t(), Move.t(), MoveType.t()) :: Board.t()
-  def update(
-        board,
-        piece = %Piece{},
-        move = %Move{},
-        move_type
-      ) do
-    board
-    |> maybe_unset_en_passant_target(piece, move, move_type)
-    |> Board.set(move.to, piece)
-    |> Board.unset(move.from)
-    |> maybe_promote(move.to, move.promotion, piece.color)
-    |> maybe_castle(piece, move, move_type)
+  @spec put_updated(MoveContext.t()) :: MoveContext.t()
+  def put_updated(move_context = %MoveContext{valid?: false}), do: move_context
+
+  def put_updated(move_context = %MoveContext{board: board}) do
+    %MoveContext{move_context | updated_board: board}
+    |> move_piece()
+    |> maybe_unset_en_passant_target()
+    |> maybe_promote()
+    |> maybe_castle()
+  end
+
+  defp move_piece(
+         move_context = %MoveContext{
+           updated_board: updated_board,
+           color: color,
+           square: square,
+           target_square: target_square,
+           piece: piece_type,
+         }
+       ) do
+    updated_board =
+      updated_board
+      |> Board.unset(square)
+      |> Board.set(target_square, Piece.new(piece_type, color))
+
+    %MoveContext{move_context | updated_board: updated_board}
   end
 
   defp maybe_unset_en_passant_target(
-         board,
-         %Piece{type: :p},
-         %Move{from: from, to: to},
-         :en_passant
+         move_context = %MoveContext{
+           updated_board: updated_board,
+           piece: :p,
+           square: square,
+           target_square: target_square,
+           move_type: :en_passant,
+         }
        ) do
-    Board.unset(board, Square.new(to.file, from.rank))
+    updated_board =
+      Board.unset(updated_board, Square.new(target_square.file, square.rank))
+
+    %MoveContext{move_context | updated_board: updated_board}
   end
 
-  defp maybe_unset_en_passant_target(board, %Piece{}, %Move{}, _),
-    do: board
+  defp maybe_unset_en_passant_target(move_context), do: move_context
 
-  defp maybe_promote(board, to_square, promotion, piece_color) when not is_nil(promotion),
-    do: Board.set(board, to_square, Piece.new(promotion, piece_color))
+  defp maybe_promote(
+         move_context = %MoveContext{
+           updated_board: updated_board,
+           target_square: target_square,
+           promotion: promotion,
+           color: color,
+           piece: :p,
+         }
+       )
+       when target_square.rank in [0, 7] do
+    updated_board =
+      Board.set(updated_board, target_square, Piece.new(promotion, color))
 
-  defp maybe_promote(board, %Square{}, _, _), do: board
+    %MoveContext{move_context | updated_board: updated_board}
+  end
+
+  defp maybe_promote(move_context), do: move_context
 
   defp maybe_castle(
-         board,
-         %Piece{type: :k, color: color},
-         %Move{to: to},
-         move_type
+         move_context = %MoveContext{
+           updated_board: updated_board,
+           piece: :k,
+           color: color,
+           target_square: %Square{rank: target_rank},
+           move_type: move_type,
+         }
        )
        when move_type in [:castle_queenside, :castle_kingside] do
     {rook_from_file, rook_to_file} =
@@ -47,9 +81,12 @@ defmodule ExChessCore.State.BoardManager do
         :castle_kingside -> {7, 5}
       end
 
-    Board.unset(board, Square.new(rook_from_file, to.rank))
-    |> Board.set(Square.new(rook_to_file, to.rank), Piece.new(:r, color))
+    updated_board =
+      Board.unset(updated_board, Square.new(rook_from_file, target_rank))
+      |> Board.set(Square.new(rook_to_file, target_rank), Piece.new(:r, color))
+
+    %MoveContext{move_context | updated_board: updated_board}
   end
 
-  defp maybe_castle(board, %Piece{}, %Move{}, _), do: board
+  defp maybe_castle(move_context), do: move_context
 end
