@@ -1,52 +1,81 @@
 defmodule ExChess.Game do
-  alias ExChess.{SpecialRules, RepetitionTracker, Board, Piece}
+  alias ExChess.{Board, Piece}
 
   @type status() ::
           :continue
-          | {Piece.color(), :checkmate | :resignation}
+          | {:win, Piece.color(), :checkmate | :resignation}
           | {:tie, :stalemate | :insufficient_material | :threefold_repetition | :fifty_move_rule}
 
-  @type repetition_trackers() :: %{black: RepetitionTracker.t(), white: RepetitionTracker.t()}
+  @type en_passant_file() :: non_neg_integer() | nil
+  @type halfmove_clock() :: non_neg_integer()
+
+  @type castling_rights() :: %{
+          white_kingside?: boolean(),
+          white_queenside?: boolean(),
+          black_kingside?: boolean(),
+          black_queenside?: boolean(),
+        }
+
+  # todo: actual FEN?
+  @type fen() :: non_neg_integer()
+  @type repetition_history() :: %{{Piece.color(), fen()} => pos_integer()}
+
   @type t() :: %__MODULE__{
-          _private: %{
-            special_rules: SpecialRules.t(),
-            repetition_trackers: repetition_trackers(),
-            halfmove_clock: non_neg_integer(),
-          },
+          status: status(),
           color_at_play: Piece.color(),
           board: Board.t(),
-          status: status(),
-          draw_claimable?: boolean(),
+          en_passant_file: en_passant_file(),
+          halfmove_clock: halfmove_clock(),
+          castling_rights: castling_rights(),
+          repetition_history: repetition_history(),
         }
   @enforce_keys [
+    :status,
     :color_at_play,
     :board,
-    :status,
-    :draw_claimable?,
-    :_private,
+    :en_passant_file,
+    :castling_rights,
+    :repetition_history,
+    :halfmove_clock,
   ]
-  defstruct [:color_at_play, :board, :status, :draw_claimable?, :_private]
-
-  @initial_repetition_trackers %{
-    white: RepetitionTracker.new(:white),
-    black: RepetitionTracker.new(:black),
-  }
+  defstruct [
+    :status,
+    :color_at_play,
+    :board,
+    :en_passant_file,
+    :castling_rights,
+    :repetition_history,
+    :halfmove_clock,
+  ]
 
   @spec new() :: t()
-  def new() do
-    %__MODULE__{
+  def new(),
+    do: %__MODULE__{
+      status: :continue,
       color_at_play: :white,
       board: Board.new(),
-      draw_claimable?: false,
-      _private: %{
-        special_rules: SpecialRules.new(),
-        repetition_trackers: @initial_repetition_trackers,
-        halfmove_clock: 0,
+      en_passant_file: nil,
+      castling_rights: %{
+        white_kingside?: true,
+        white_queenside?: true,
+        black_kingside?: true,
+        black_queenside?: true,
       },
-      status: :continue,
+      repetition_history: %{
+        {:white, :erlang.phash2(Board.new())} => 1,
+      },
+      halfmove_clock: 0,
+    }
+
+  @spec increment_repetition_history(repetition_history(), Piece.color(), Board.t()) ::
+          {repetition_history(), pos_integer()}
+  def increment_repetition_history(repetition_history = %{}, color, board) do
+    position_key = {color, :erlang.phash2(board)}
+    count = Map.get(repetition_history, position_key, 0) + 1
+
+    {
+      Map.put(repetition_history, position_key, count),
+      count
     }
   end
-
-  @spec empty_repetition_trackers() :: %{white: %{}, black: %{}}
-  def empty_repetition_trackers(), do: %{white: %{}, black: %{}}
 end

@@ -55,125 +55,132 @@ defmodule ExChessTest.PawnTest do
     |> Assert.legal_moves(["a6", "a5"])
   end
 
-  @validation_after_moving_board Arrange.new_game()
-                                 |> Arrange.game_move("a2a3")
-                                 |> Arrange.game_move("a7a6")
+  defp validation_after_moving_board(),
+    do:
+      Arrange.new_game()
+      |> Arrange.game_move("a2a3")
+      |> Arrange.game_move("a7a6")
 
   test "validation - pawn cannot advance two squares after moving" do
     # white
-    Arrange.game_move(@validation_after_moving_board, "a3a5")
+    Arrange.game_move(validation_after_moving_board(), "a3a5")
     |> Assert.invalid_move()
 
     # black
-    Arrange.game_move(@validation_after_moving_board, "b2b3")
+    Arrange.game_move(validation_after_moving_board(), "b2b3")
     |> Arrange.game_move("a6a4")
     |> Assert.invalid_move()
   end
 
   test "validation - pawn cannot advance two squares after moving (list_legal_moves)" do
     # white
-    Arrange.game_list_legal_moves(@validation_after_moving_board, "a3")
+    Arrange.game_list_legal_moves(validation_after_moving_board(), "a3")
     |> Assert.legal_moves(["a4"])
 
     # black
-    Arrange.game_move(@validation_after_moving_board, "b2b3")
+    Arrange.game_move(validation_after_moving_board(), "b2b3")
     |> Arrange.game_list_legal_moves("a6")
     |> Assert.legal_moves(["a5"])
   end
 
-  @validation_cannot_advance_board Arrange.new_game()
-                                   |> Arrange.game_board("""
-                                      abcdefgh
-                                     ----------
-                                   8 |rnbqkbnr| 8
-                                   7 |ppppppp | 7
-                                   6 |P       | 6
-                                   5 |        | 5
-                                   4 |        | 4
-                                   3 |       p| 3
-                                   2 | PPPPPPP| 2
-                                   1 |RNBQKBNR| 1
-                                     ----------
-                                      abcdefgh
-                                   """)
+  defp validation_cannot_advance_board(),
+    do:
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |rnbqkbnr| 8
+      7 |ppppppp | 7
+      6 |P       | 6
+      5 |        | 5
+      4 |        | 4
+      3 |       p| 3
+      2 | PPPPPPP| 2
+      1 |RNBQKBNR| 1
+        ----------
+         abcdefgh
+      """)
 
   test "validation - pawn cannot advance when path is blocked" do
     # white
-    Arrange.game_move(@validation_cannot_advance_board, "h2h3")
+    Arrange.game_move(validation_cannot_advance_board(), "h2h3")
     |> Assert.invalid_move()
 
     # black
-    Arrange.game_move(@validation_cannot_advance_board, "b2b3")
+    Arrange.game_move(validation_cannot_advance_board(), "b2b3")
     |> Arrange.game_move("a7a6")
     |> Assert.invalid_move()
   end
 
   test "validation - pawn cannot advance when path is blocked (list_legal_moves)" do
     # white
-    Arrange.game_list_legal_moves(@validation_cannot_advance_board, "h2")
+    Arrange.game_list_legal_moves(validation_cannot_advance_board(), "h2")
     |> Assert.legal_moves([])
 
     # black
-    Arrange.game_move(@validation_cannot_advance_board, "b2b3")
+    Arrange.game_move(validation_cannot_advance_board(), "b2b3")
     |> Arrange.game_list_legal_moves("a7")
     |> Assert.legal_moves([])
   end
 
-  @validation_cannot_advance_two_squares_board Arrange.new_game()
-                                               |> Arrange.game_board("""
-                                                  abcdefgh
-                                                 ----------
-                                               8 |rnbqkbnr| 8
-                                               7 |ppppp p | 7
-                                               6 |P       | 6
-                                               5 |  P     | 5
-                                               4 |     p  | 4
-                                               3 |       p| 3
-                                               2 | P PPPPP| 2
-                                               1 |RNBQKBNR| 1
-                                                 ----------
-                                                  abcdefgh
-                                               """)
+  defp validation_cannot_advance_two_squares_board(),
+    do:
+      Arrange.new_game()
+      |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |rnbqkbnr| 8
+      7 |ppppp p | 7
+      6 |P       | 6
+      5 |  P     | 5
+      4 |     p  | 4
+      3 |       p| 3
+      2 | P PPPPP| 2
+      1 |RNBQKBNR| 1
+        ----------
+         abcdefgh
+      """)
+
   test "validation - pawn cannot advance two ranks when square in front is occupied" do
     # white
-    Arrange.game_move(@validation_cannot_advance_two_squares_board, "h2h4")
+    Arrange.game_move(validation_cannot_advance_two_squares_board(), "h2h4")
     |> Assert.invalid_move()
 
     # black
-    Arrange.game_move(@validation_cannot_advance_two_squares_board, "b2b3")
+    Arrange.game_move(validation_cannot_advance_two_squares_board(), "b2b3")
     |> Arrange.game_move("a7a5")
     |> Assert.invalid_move()
   end
 
   test "validation - pawn cannot advance two ranks when square in front is occupied (list_legal_moves)" do
     # white
-    Arrange.game_list_legal_moves(@validation_cannot_advance_two_squares_board, "h2")
+    Arrange.game_list_legal_moves(validation_cannot_advance_two_squares_board(), "h2")
     |> Assert.legal_moves([])
 
     # black
-    Arrange.game_move(@validation_cannot_advance_two_squares_board, "b2b3")
+    Arrange.game_move(validation_cannot_advance_two_squares_board(), "b2b3")
     |> Arrange.game_list_legal_moves("a7")
     |> Assert.legal_moves([])
   end
 
   test "validation - pawn cannot advance two ranks when square two ranks in front is occupied" do
     # white
-    Arrange.game_move(@validation_cannot_advance_two_squares_board, "f2f4")
+    Arrange.game_move(validation_cannot_advance_two_squares_board(), "f2f4")
     |> Assert.invalid_move()
 
     # black
-    Arrange.game_move(@validation_cannot_advance_two_squares_board, "b2b3")
+    Arrange.game_move(validation_cannot_advance_two_squares_board(), "b2b3")
     |> Arrange.game_move("c7c5")
     |> Assert.invalid_move()
   end
 
   test "validation - pawn cannot advance two ranks when square two ranks in front is occupied (list_legal_moves)" do
     # white
-    Arrange.game_list_legal_moves(@validation_cannot_advance_two_squares_board, "f2")
+    Arrange.game_list_legal_moves(validation_cannot_advance_two_squares_board(), "f2")
     |> Assert.legal_moves(["f3"])
 
     # black
-    Arrange.game_move(@validation_cannot_advance_two_squares_board, "b2b3")
+    Arrange.game_move(validation_cannot_advance_two_squares_board(), "b2b3")
     |> Arrange.game_list_legal_moves("c7")
     |> Assert.legal_moves(["c6"])
   end
@@ -429,8 +436,8 @@ defmodule ExChessTest.PawnTest do
     |> Assert.invalid_move()
   end
 
-  test "promotion" do
-    game =
+  defp promotion_game(),
+    do:
       Arrange.new_game()
       |> Arrange.game_board("""
          abcdefgh
@@ -447,8 +454,9 @@ defmodule ExChessTest.PawnTest do
          abcdefgh
       """)
 
+  test "promotion" do
     # white
-    Arrange.game_promote(game, "d7d8", :b)
+    Arrange.game_promote(promotion_game(), "d7d8", :b)
     |> Assert.game_board("""
        abcdefgh
       ----------
@@ -465,7 +473,7 @@ defmodule ExChessTest.PawnTest do
     """)
 
     # black
-    Arrange.game_turn(game, :black)
+    Arrange.game_turn(promotion_game(), :black)
     |> Arrange.game_promote("d2d1", :b)
     |> Assert.game_board("""
        abcdefgh
@@ -484,106 +492,107 @@ defmodule ExChessTest.PawnTest do
   end
 
   test "promotion (list_legal_moves)" do
-    game =
-      Arrange.new_game()
-      |> Arrange.game_board("""
-         abcdefgh
-        ----------
-      8 |k       | 8
-      7 |p  P    | 7
-      6 |        | 6
-      5 |        | 5
-      4 |        | 4
-      3 |        | 3
-      2 |P  p    | 2
-      1 |K       | 1
-        ----------
-         abcdefgh
-      """)
-
     # white
-    Arrange.game_list_legal_moves(game, "d7")
+    Arrange.game_list_legal_moves(promotion_game(), "d7")
     |> Assert.legal_moves(["d8"])
 
     # black
-    Arrange.game_turn(game, :black)
+    Arrange.game_turn(promotion_game(), :black)
     |> Arrange.game_list_legal_moves("d2")
     |> Assert.legal_moves(["d1"])
   end
 
-  test "validation - cannot advance to final rank without promoting" do
-    game =
-      Arrange.new_game()
-      |> Arrange.game_board("""
-         abcdefgh
-        ----------
-      8 |k       | 8
-      7 |p  P    | 7
-      6 |        | 6
-      5 |        | 5
-      4 |        | 4
-      3 |        | 3
-      2 |P  p    | 2
-      1 |K       | 1
-        ----------
-         abcdefgh
-      """)
-
+  test "promotion - defaults to queen" do
     # white
-    Arrange.game_move(game, "d7d8")
-    |> Assert.invalid_move()
+    Arrange.game_move(promotion_game(), "d7d8")
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |k  Q    | 8
+    7 |p       | 7
+    6 |        | 6
+    5 |        | 5
+    4 |        | 4
+    3 |        | 3
+    2 |P  p    | 2
+    1 |K       | 1
+      ----------
+       abcdefgh
+    """)
 
     # black
-    Arrange.game_turn(game, :black)
+    Arrange.game_turn(promotion_game(), :black)
     |> Arrange.game_move("d2d1")
-    |> Assert.invalid_move()
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |k       | 8
+    7 |p  P    | 7
+    6 |        | 6
+    5 |        | 5
+    4 |        | 4
+    3 |        | 3
+    2 |P       | 2
+    1 |K  q    | 1
+      ----------
+       abcdefgh
+    """)
   end
 
   test "validation - cannot promote to king or pawn" do
-    game =
-      Arrange.new_game()
-      |> Arrange.game_board("""
-         abcdefgh
-        ----------
-      8 |k       | 8
-      7 |p  P    | 7
-      6 |        | 6
-      5 |        | 5
-      4 |        | 4
-      3 |        | 3
-      2 |P  p    | 2
-      1 |K       | 1
-        ----------
-         abcdefgh
-      """)
-
     # white
-    Arrange.game_promote(game, "d7d8", :k)
+    Arrange.game_promote(promotion_game(), "d7d8", :k)
     |> Assert.invalid_move()
 
-    Arrange.game_promote(game, "d7d8", :p)
+    Arrange.game_promote(promotion_game(), "d7d8", :p)
     |> Assert.invalid_move()
 
     # black
-    Arrange.game_turn(game, :black)
+    Arrange.game_turn(promotion_game(), :black)
     |> Arrange.game_promote("d2d1", :k)
     |> Assert.invalid_move()
 
-    Arrange.game_turn(game, :black)
+    Arrange.game_turn(promotion_game(), :black)
     |> Arrange.game_promote("d2d1", :p)
     |> Assert.invalid_move()
   end
 
-  test "validation - pawn cannot promote if not on final square" do
+  test "promotion ignored if pawn not on final square" do
     # white
     Arrange.new_game()
     |> Arrange.game_promote("a2a3", :q)
-    |> Assert.invalid_move()
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |rnbqkbnr| 8
+    7 |pppppppp| 7
+    6 |        | 6
+    5 |        | 5
+    4 |        | 4
+    3 |P       | 3
+    2 | PPPPPPP| 2
+    1 |RNBQKBNR| 1
+      ----------
+       abcdefgh
+    """)
 
     # black
     Arrange.new_game()
     |> Arrange.game_move("a2a3")
     |> Arrange.game_promote("a7a6", :q)
-    |> Assert.invalid_move()
+    |> Assert.game_board("""
+       abcdefgh
+      ----------
+    8 |rnbqkbnr| 8
+    7 | ppppppp| 7
+    6 |p       | 6
+    5 |        | 5
+    4 |        | 4
+    3 |P       | 3
+    2 | PPPPPPP| 2
+    1 |RNBQKBNR| 1
+      ----------
+       abcdefgh
+    """)
   end
 end

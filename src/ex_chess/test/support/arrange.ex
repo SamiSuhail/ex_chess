@@ -1,15 +1,53 @@
 defmodule ExChessTest.Arrange do
-  alias ExChess.{Game, Move, Square, Piece}
+  alias ExChess.{Game, Board, Move, Square, Piece}
 
   def new_game(), do: ExChess.start_game()
 
   def game_board(game, board_text) do
     board = read_board(board_text)
-    %Game{game | board: board}
+
+    %Game{
+      game
+      | board: board,
+        castling_rights: sanitized_castling_rights(board),
+    }
   end
 
   def game_turn(game, color),
     do: %Game{game | color_at_play: color}
+
+  def game_moves(game, moves_text) do
+    moves_text
+    |> String.split("\n", trim: true)
+    |> Enum.flat_map(&String.split(&1, " ", trim: true))
+    |> Enum.reduce(game, fn move_text, curr_game ->
+      game_move(curr_game, move_text)
+    end)
+  end
+
+  def game_move(game, move_text) do
+    move = parse_move(move_text)
+    ExChess.move(game, move)
+  end
+
+  def game_promote(game, move_text, piece_type) do
+    move = %Move{parse_move(move_text) | promotion: piece_type}
+    ExChess.move(game, move)
+  end
+
+  def game_list_legal_moves(game, square_text) do
+    square = text_to_square(square_text)
+    legal_moves = ExChess.list_legal_moves(game, square)
+    {game, legal_moves}
+  end
+
+  def claim_draw(game) do
+    ExChess.claim_draw(game)
+  end
+
+  def resign(game) do
+    ExChess.resign(game)
+  end
 
   defp read_board(board_text) when is_binary(board_text) do
     {board, _} =
@@ -48,23 +86,52 @@ defmodule ExChessTest.Arrange do
   defp symbol_to_piece("K"), do: Piece.new(:k, :white)
   defp symbol_to_piece("k"), do: Piece.new(:k, :black)
 
-  def game_moves(game, moves_text) do
-    moves_text
-    |> String.split("\n", trim: true)
-    |> Enum.flat_map(&String.split(&1, " ", trim: true))
-    |> Enum.reduce(game, fn move_text, curr_game ->
-      game_move(curr_game, move_text)
-    end)
-  end
+  defp sanitized_castling_rights(board) do
+    [
+      white_king_moved?,
+      black_king_moved?,
+      white_queenside_rook_moved?,
+      black_queenside_rook_moved?,
+      white_kingside_rook_moved?,
+      black_kingside_rook_moved?,
+    ] =
+      for {piece, file} <- [{:k, 4}, {:r, 0}, {:r, 7}],
+          color <- [:white, :black] do
+        rank = (color == :white && 0) || 7
+        not match?(%Piece{color: ^color, type: ^piece}, Board.get(board, Square.new(file, rank)))
+      end
 
-  def game_move(game, move_text) do
-    move = parse_move(move_text)
-    ExChess.move(game, move)
-  end
+    castling_rights_white =
+      cond do
+        white_king_moved? or (white_queenside_rook_moved? and white_kingside_rook_moved?) ->
+          %{white_queenside?: false, white_kingside?: false}
 
-  def game_promote(game, move_text, piece_type) do
-    move = %Move{parse_move(move_text) | promotion: piece_type}
-    ExChess.move(game, move)
+        white_queenside_rook_moved? ->
+          %{white_queenside?: false, white_kingside?: true}
+
+        white_kingside_rook_moved? ->
+          %{white_queenside?: true, white_kingside?: false}
+
+        true ->
+          %{white_queenside?: true, white_kingside?: true}
+      end
+
+    castling_rights_black =
+      cond do
+        black_king_moved? or (black_queenside_rook_moved? and black_kingside_rook_moved?) ->
+          %{black_queenside?: false, black_kingside?: false}
+
+        black_queenside_rook_moved? ->
+          %{black_queenside?: false, black_kingside?: true}
+
+        black_kingside_rook_moved? ->
+          %{black_queenside?: true, black_kingside?: false}
+
+        true ->
+          %{black_queenside?: true, black_kingside?: true}
+      end
+
+    Map.merge(castling_rights_black, castling_rights_white)
   end
 
   defp parse_move(<<
@@ -75,12 +142,6 @@ defmodule ExChessTest.Arrange do
     to_square = text_to_square(to)
 
     Move.new(from_square, to_square)
-  end
-
-  def game_list_legal_moves(game, square_text) do
-    square = text_to_square(square_text)
-    legal_moves = ExChess.list_legal_moves(game, square)
-    {game, legal_moves}
   end
 
   defp text_to_square(<<
@@ -99,12 +160,4 @@ defmodule ExChessTest.Arrange do
   defp file_to_index("h"), do: 7
 
   defp rank_to_index(rank_text), do: String.to_integer(rank_text) - 1
-
-  def claim_draw(game) do
-    ExChess.claim_draw(game)
-  end
-
-  def resign(game) do
-    ExChess.resign(game)
-  end
 end

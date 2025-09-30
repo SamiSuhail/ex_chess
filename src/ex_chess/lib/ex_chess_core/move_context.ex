@@ -1,40 +1,115 @@
 defmodule ExChessCore.MoveContext do
-  alias ExChess.{Board, SpecialRules, Move, Piece}
+  alias ExChess.{Game, Board, Move, Square, Piece}
+
+  @type move_type_king_special() :: :castle_kingside | :castle_queenside
+  @type move_type_pawn_special() :: :en_passant
+
+  @type move_type_special() :: move_type_king_special() | move_type_pawn_special()
+
+  @type move_type_pawn_basic() :: :take | :advance_one | :advance_two
+  @type move_type_basic() :: move_type_pawn_basic() | nil
+
+  @type move_type() :: move_type_basic() | move_type_special()
 
   @type pieces() :: {Piece.t() | nil, Piece.t() | nil}
+  @type error() :: {:out_of_bounds, %{}}
   @type t() :: %__MODULE__{
-          color_at_play: Piece.color(),
+          color: Piece.color(),
           board: Board.t(),
-          special_rules: SpecialRules.t() | nil,
-          move: Move.t(),
-          pieces: pieces(),
+          square: Square.t(),
+          target_square: Square.t(),
+          square_shift: {file_shift :: integer(), rank_shift :: integer()},
+          # optional
+          valid?: nil | boolean(),
+          game_status: nil | Game.status(),
+          enemy_color: nil | Piece.color(),
+          en_passant_file: nil | Game.en_passant_file(),
+          castling_rights: nil | Game.castling_rights(),
+          repetition_history: nil | Game.repetition_history(),
+          halfmove_clock: nil | Game.halfmove_clock(),
+          promotion: Move.promotion(),
+          error: nil | error(),
+          piece: nil | Piece.type(),
+          target_piece: nil | Piece.type(),
+          move_type: nil | move_type(),
+          updated_board: nil | Board.t(),
         }
 
-  @enforce_keys [:color_at_play, :board, :special_rules, :move, :pieces]
-  defstruct [:color_at_play, :board, :special_rules, :move, :pieces]
+  # required keys are based on the minimum number of fields needed to validate if the king is under attack
+  @enforce_keys [
+    :color,
+    :board,
+    :square,
+    :target_square,
+    :square_shift,
+  ]
+  defstruct [
+    :color,
+    :board,
+    :square,
+    :target_square,
+    :square_shift,
+    # optional
+    :valid?,
+    :game_status,
+    :enemy_color,
+    :en_passant_file,
+    :castling_rights,
+    :repetition_history,
+    :halfmove_clock,
+    :promotion,
+    :error,
+    :piece,
+    :target_piece,
+    :move_type,
+    :updated_board,
+  ]
 
-  @spec new(
-          Piece.color(),
-          Board.t(),
-          Move.t(),
-          Piece.t() | nil,
-          SpecialRules.t() | nil
-        ) :: t()
   def new(
-        color_at_play,
-        board,
-        move = %Move{},
-        piece,
-        special_rules \\ nil
+        %Game{
+          status: game_status,
+          color_at_play: color,
+          board: board,
+          en_passant_file: en_passant_file,
+          castling_rights: castling_rights,
+          repetition_history: repetition_history,
+          halfmove_clock: halfmove_clock,
+        },
+        %Move{
+          from: from,
+          to: to,
+          promotion: promotion,
+        }
       ) do
-    to_piece = Board.get(board, move.to)
-
     %__MODULE__{
-      color_at_play: color_at_play,
+      valid?: true,
+      game_status: game_status,
+      color: color,
+      enemy_color: Piece.flip_color(color),
       board: board,
-      special_rules: special_rules,
-      move: move,
-      pieces: {piece, to_piece},
+      en_passant_file: en_passant_file,
+      castling_rights: castling_rights,
+      repetition_history: repetition_history,
+      halfmove_clock: halfmove_clock,
+      square: from,
+      target_square: to,
+      square_shift: Square.compare(from, to),
+      promotion: promotion,
     }
+  end
+
+  @spec error(t(), atom(), map()) :: t()
+  def error(move_context = %__MODULE__{}, code, payload \\ %{})
+      when is_atom(code) and is_map(payload) do
+    %__MODULE__{
+      move_context
+      | valid?: false,
+        error: {code, payload},
+    }
+  end
+
+  @spec put_move_type(t(), move_type()) :: t()
+  def put_move_type(move_context = %__MODULE__{}, move_type) do
+    %__MODULE__{move_context | move_type: move_type}
   end
 end
