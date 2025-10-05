@@ -46,7 +46,7 @@ defmodule ExChessCore.PieceRules.PawnRules do
           true ->
             error(move_context, :cannot_take, %{
               en_passant_file: en_passant_file,
-              target_piece: target_piece
+              target_piece: target_piece,
             })
         end
 
