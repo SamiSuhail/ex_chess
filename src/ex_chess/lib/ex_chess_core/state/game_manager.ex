@@ -23,7 +23,7 @@ defmodule ExChessCore.State.GameManager do
       repetition_history(move_context, updated_castling_rights, reversible_move?)
 
     %Game{
-      color_at_play: enemy_color,
+      active_color: enemy_color,
       status: game_status(move_context, repetitions_count),
       board: updated_board,
       en_passant_file: updated_en_passant_file,

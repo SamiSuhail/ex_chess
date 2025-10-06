@@ -15,7 +15,7 @@ defmodule ExChessCore.PieceRules do
   def evaluate_king_threats(board, enemy_color, enemy_piece, enemy_square, king_square) do
     game = %Game{
       status: :continue,
-      color_at_play: enemy_color,
+      active_color: enemy_color,
       board: board,
       en_passant_file: nil,
       castling_rights: %{},

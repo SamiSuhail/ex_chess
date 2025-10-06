@@ -68,7 +68,7 @@ defmodule ExChessCore.MoveContext do
   def new(
         %Game{
           status: game_status,
-          color_at_play: color,
+          active_color: color,
           board: board,
           en_passant_file: en_passant_file,
           castling_rights: castling_rights,

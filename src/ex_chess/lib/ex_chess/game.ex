@@ -22,7 +22,7 @@ defmodule ExChess.Game do
 
   @type t() :: %__MODULE__{
           status: status(),
-          color_at_play: Piece.color(),
+          active_color: Piece.color(),
           board: Board.t(),
           en_passant_file: en_passant_file(),
           halfmove_clock: halfmove_clock(),
@@ -31,7 +31,7 @@ defmodule ExChess.Game do
         }
   @enforce_keys [
     :status,
-    :color_at_play,
+    :active_color,
     :board,
     :en_passant_file,
     :castling_rights,
@@ -40,7 +40,7 @@ defmodule ExChess.Game do
   ]
   defstruct [
     :status,
-    :color_at_play,
+    :active_color,
     :board,
     :en_passant_file,
     :castling_rights,
@@ -52,7 +52,7 @@ defmodule ExChess.Game do
   def new(),
     do: %__MODULE__{
       status: :continue,
-      color_at_play: :white,
+      active_color: :white,
       board: Board.new(),
       en_passant_file: nil,
       castling_rights: %{

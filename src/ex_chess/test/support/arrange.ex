@@ -14,7 +14,7 @@ defmodule ExChessTest.Arrange do
   end
 
   def game_turn(game, color),
-    do: %Game{game | color_at_play: color}
+    do: %Game{game | active_color: color}
 
   def game_moves(game, moves_text) do
     moves_text

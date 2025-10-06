@@ -17,7 +17,7 @@ defmodule ExChessCore.MoveGeneration do
     |> Stream.filter(fn target_square ->
       game = %Game{
         status: :continue,
-        color_at_play: color,
+        active_color: color,
         board: board,
         castling_rights: castling_rights,
         en_passant_file: en_passant_file,
