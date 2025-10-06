@@ -95,4 +95,105 @@ defmodule ExChess.Fen do
   defp from_file(5), do: "f"
   defp from_file(6), do: "g"
   defp from_file(7), do: "h"
+
+  @spec to_game(binary()) :: Game.t()
+  def to_game(fen) do
+    [
+      board_fen,
+      active_color_fen,
+      castling_rights_fen,
+      en_passant_square_fen,
+      halfmove_clock_fen,
+      _fullmove_number_fen,
+    ] = String.split(fen, " ")
+
+    {halfmove_clock, _rest} = Integer.parse(halfmove_clock_fen)
+
+    Game.new(
+      to_active_color(active_color_fen),
+      to_board(board_fen),
+      to_castling_rights(castling_rights_fen),
+      to_en_passant_file(en_passant_square_fen),
+      halfmove_clock
+    )
+  end
+
+  defp to_active_color("w"), do: :white
+  defp to_active_color("b"), do: :black
+
+  defp to_board(board_fen) do
+    ranks = board_fen |> String.split("/")
+
+    ranks
+    |> Enum.reduce({Board.empty(), 7}, fn rank_fen, {board, rank} ->
+      updated_board = put_pieces(board, rank_fen, rank)
+      {updated_board, rank - 1}
+    end)
+    |> elem(0)
+  end
+
+  defp put_pieces(board, rank_fen, rank) do
+    rank_fen
+    |> String.split("", trim: true)
+    |> Enum.reduce({board, 0}, fn symbol, {curr_board, file} ->
+      case parse_symbol(symbol) do
+        {:piece, piece} ->
+          square = Square.new(file, rank)
+          updated_board = Board.set(curr_board, square, piece)
+          {updated_board, file + 1}
+
+        {:empty_squares, count} ->
+          {curr_board, file + count}
+      end
+    end)
+    |> elem(0)
+  end
+
+  defp parse_symbol("P"), do: {:piece, Piece.new(:p, :white)}
+  defp parse_symbol("p"), do: {:piece, Piece.new(:p, :black)}
+  defp parse_symbol("R"), do: {:piece, Piece.new(:r, :white)}
+  defp parse_symbol("r"), do: {:piece, Piece.new(:r, :black)}
+  defp parse_symbol("N"), do: {:piece, Piece.new(:n, :white)}
+  defp parse_symbol("n"), do: {:piece, Piece.new(:n, :black)}
+  defp parse_symbol("B"), do: {:piece, Piece.new(:b, :white)}
+  defp parse_symbol("b"), do: {:piece, Piece.new(:b, :black)}
+  defp parse_symbol("Q"), do: {:piece, Piece.new(:q, :white)}
+  defp parse_symbol("q"), do: {:piece, Piece.new(:q, :black)}
+  defp parse_symbol("K"), do: {:piece, Piece.new(:k, :white)}
+  defp parse_symbol("k"), do: {:piece, Piece.new(:k, :black)}
+
+  defp parse_symbol(empty_squares_count) do
+    # {count, _rest} = Integer.parse(empty_squares_count)
+    case Integer.parse(empty_squares_count) do
+      {count, _rest} -> {:empty_squares, count}
+      :error -> raise "Cannot parse symbol #{empty_squares_count}"
+    end
+  end
+
+  defp to_castling_rights("-"), do: Game.empty_castling_rights()
+
+  defp to_castling_rights(castling_rights_fen) do
+    String.split(castling_rights_fen, "", trim: true)
+    |> Enum.reduce(Game.empty_castling_rights(), fn symbol, castling_rights ->
+      key =
+        case symbol do
+          "K" -> :white_kingside?
+          "Q" -> :white_queenside?
+          "k" -> :black_kingside?
+          "q" -> :black_queenside?
+        end
+
+      Map.put(castling_rights, key, true)
+    end)
+  end
+
+  defp to_en_passant_file("-"), do: nil
+  defp to_en_passant_file("a" <> _rank), do: 0
+  defp to_en_passant_file("b" <> _rank), do: 1
+  defp to_en_passant_file("c" <> _rank), do: 2
+  defp to_en_passant_file("d" <> _rank), do: 3
+  defp to_en_passant_file("e" <> _rank), do: 4
+  defp to_en_passant_file("f" <> _rank), do: 5
+  defp to_en_passant_file("g" <> _rank), do: 6
+  defp to_en_passant_file("h" <> _rank), do: 7
 end

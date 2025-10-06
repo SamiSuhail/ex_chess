@@ -15,15 +15,7 @@ defmodule ExChessCore.MoveGeneration do
     targets(piece, square)
     |> Enum.to_list()
     |> Stream.filter(fn target_square ->
-      game = %Game{
-        status: :continue,
-        active_color: color,
-        board: board,
-        castling_rights: castling_rights,
-        en_passant_file: en_passant_file,
-        halfmove_clock: 0,
-        repetition_history: %{},
-      }
+      game = Game.new(color, board, castling_rights, en_passant_file, 0)
 
       move = Move.new(square, target_square)
       move_context = MoveContext.new(game, move)

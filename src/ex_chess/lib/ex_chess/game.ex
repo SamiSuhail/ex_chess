@@ -50,22 +50,50 @@ defmodule ExChess.Game do
 
   @spec new() :: t()
   def new(),
-    do: %__MODULE__{
+    do:
+      new(
+        :white,
+        Board.new(),
+        %{
+          white_kingside?: true,
+          white_queenside?: true,
+          black_kingside?: true,
+          black_queenside?: true,
+        },
+        nil,
+        0
+      )
+
+  @spec new(
+          Piece.color(),
+          Board.t(),
+          castling_rights(),
+          en_passant_file(),
+          halfmove_clock()
+        ) :: t()
+  def new(active_color, board, castling_rights, en_passant_file, halfmove_clock) do
+    %__MODULE__{
       status: :continue,
-      active_color: :white,
-      board: Board.new(),
-      en_passant_file: nil,
-      castling_rights: %{
-        white_kingside?: true,
-        white_queenside?: true,
-        black_kingside?: true,
-        black_queenside?: true,
-      },
+      active_color: active_color,
+      board: board,
+      en_passant_file: en_passant_file,
+      castling_rights: castling_rights,
+      halfmove_clock: halfmove_clock,
       repetition_history: %{
-        {:white, :erlang.phash2(Board.new())} => 1,
+        {active_color, :erlang.phash2(board)} => 1,
       },
-      halfmove_clock: 0,
     }
+  end
+
+  @spec empty_castling_rights() :: castling_rights()
+  def empty_castling_rights() do
+    %{
+      white_kingside?: false,
+      white_queenside?: false,
+      black_kingside?: false,
+      black_queenside?: false,
+    }
+  end
 
   @spec increment_repetition_history(repetition_history(), Piece.color(), Board.t()) ::
           {repetition_history(), pos_integer()}
