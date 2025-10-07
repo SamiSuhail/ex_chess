@@ -27,6 +27,7 @@ defmodule ExChessCore.MoveContext do
           castling_rights: nil | Game.castling_rights(),
           repetition_history: nil | Game.repetition_history(),
           halfmove_clock: nil | Game.halfmove_clock(),
+          fullmove_number: pos_integer(),
           promotion: Move.promotion(),
           error: nil | error(),
           piece: nil | Piece.type(),
@@ -57,6 +58,7 @@ defmodule ExChessCore.MoveContext do
     :castling_rights,
     :repetition_history,
     :halfmove_clock,
+    :fullmove_number,
     :promotion,
     :error,
     :piece,
@@ -68,12 +70,13 @@ defmodule ExChessCore.MoveContext do
   def new(
         %Game{
           status: game_status,
-          color_at_play: color,
+          active_color: color,
           board: board,
           en_passant_file: en_passant_file,
           castling_rights: castling_rights,
           repetition_history: repetition_history,
           halfmove_clock: halfmove_clock,
+          fullmove_number: fullmove_number,
         },
         %Move{
           from: from,
@@ -91,6 +94,7 @@ defmodule ExChessCore.MoveContext do
       castling_rights: castling_rights,
       repetition_history: repetition_history,
       halfmove_clock: halfmove_clock,
+      fullmove_number: fullmove_number,
       square: from,
       target_square: to,
       square_shift: Square.compare(from, to),

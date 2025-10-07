@@ -13,16 +13,7 @@ defmodule ExChessCore.PieceRules do
   @spec evaluate_king_threats(Board.t(), Piece.color(), Piece.type(), Square.t(), Square.t()) ::
           MoveContext.t()
   def evaluate_king_threats(board, enemy_color, enemy_piece, enemy_square, king_square) do
-    game = %Game{
-      status: :continue,
-      color_at_play: enemy_color,
-      board: board,
-      en_passant_file: nil,
-      castling_rights: %{},
-      repetition_history: %{},
-      halfmove_clock: 0,
-    }
-
+    game = Game.new(enemy_color, board)
     move = Move.new(enemy_square, king_square)
 
     %MoveContext{MoveContext.new(game, move) | piece: enemy_piece, target_piece: :k}

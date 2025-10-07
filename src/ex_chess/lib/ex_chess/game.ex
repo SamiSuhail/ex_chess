@@ -22,50 +22,88 @@ defmodule ExChess.Game do
 
   @type t() :: %__MODULE__{
           status: status(),
-          color_at_play: Piece.color(),
+          active_color: Piece.color(),
           board: Board.t(),
           en_passant_file: en_passant_file(),
           halfmove_clock: halfmove_clock(),
           castling_rights: castling_rights(),
           repetition_history: repetition_history(),
+          fullmove_number: pos_integer(),
         }
   @enforce_keys [
     :status,
-    :color_at_play,
+    :active_color,
     :board,
     :en_passant_file,
     :castling_rights,
     :repetition_history,
     :halfmove_clock,
+    :fullmove_number,
   ]
   defstruct [
     :status,
-    :color_at_play,
+    :active_color,
     :board,
     :en_passant_file,
     :castling_rights,
     :repetition_history,
     :halfmove_clock,
+    :fullmove_number,
   ]
 
   @spec new() :: t()
   def new(),
-    do: %__MODULE__{
+    do:
+      new(
+        :white,
+        Board.new(),
+        %{
+          white_kingside?: true,
+          white_queenside?: true,
+          black_kingside?: true,
+          black_queenside?: true,
+        },
+        nil
+      )
+
+  @spec new(
+          Piece.color(),
+          Board.t(),
+          castling_rights() | nil,
+          en_passant_file(),
+          halfmove_clock()
+        ) :: t()
+  def new(
+        active_color,
+        board,
+        castling_rights \\ nil,
+        en_passant_file \\ nil,
+        halfmove_clock \\ 0,
+        fullmove_number \\ 1
+      ) do
+    %__MODULE__{
       status: :continue,
-      color_at_play: :white,
-      board: Board.new(),
-      en_passant_file: nil,
-      castling_rights: %{
-        white_kingside?: true,
-        white_queenside?: true,
-        black_kingside?: true,
-        black_queenside?: true,
-      },
+      active_color: active_color,
+      board: board,
+      en_passant_file: en_passant_file,
+      castling_rights: castling_rights || empty_castling_rights(),
+      halfmove_clock: halfmove_clock,
+      fullmove_number: fullmove_number,
       repetition_history: %{
-        {:white, :erlang.phash2(Board.new())} => 1,
+        {active_color, :erlang.phash2(board)} => 1,
       },
-      halfmove_clock: 0,
     }
+  end
+
+  @spec empty_castling_rights() :: castling_rights()
+  def empty_castling_rights() do
+    %{
+      white_kingside?: false,
+      white_queenside?: false,
+      black_kingside?: false,
+      black_queenside?: false,
+    }
+  end
 
   @spec increment_repetition_history(repetition_history(), Piece.color(), Board.t()) ::
           {repetition_history(), pos_integer()}

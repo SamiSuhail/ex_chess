@@ -56,7 +56,7 @@ defmodule ExChessCore.MoveEvaluation do
 
       piece = %Piece{} ->
         MoveContext.error(move_context, :player_turn, %{
-          color_at_play: color,
+          active_color: color,
           square: square,
           board: board,
           piece: piece,

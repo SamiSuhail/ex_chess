@@ -75,4 +75,17 @@ defmodule ExChessTest.GameTest do
     |> Arrange.game_list_legal_moves("b1")
     |> Assert.legal_moves(["a3", "c3"])
   end
+
+  test "fullmove number increments" do
+    Arrange.new_game()
+    |> Assert.fullmove_number(1)
+    |> Arrange.game_move("a2a4")
+    |> Assert.fullmove_number(1)
+    |> Arrange.game_move("a7a5")
+    |> Assert.fullmove_number(2)
+    |> Arrange.game_move("b2b4")
+    |> Assert.fullmove_number(2)
+    |> Arrange.game_move("b7b5")
+    |> Assert.fullmove_number(3)
+  end
 end

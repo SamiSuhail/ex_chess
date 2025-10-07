@@ -43,6 +43,9 @@ defmodule ExChess.Board do
   @spec new() :: t()
   def new(), do: @starting_position
 
+  @spec empty() :: t()
+  def empty(), do: %{}
+
   @spec get(t(), Square.t()) :: Piece.t() | nil
   def get(board, square = %Square{}), do: Map.get(board, square)
 

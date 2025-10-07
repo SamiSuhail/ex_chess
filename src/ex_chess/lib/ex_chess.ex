@@ -26,7 +26,7 @@ defmodule ExChess do
   @spec list_legal_moves(Game.t(), Square.t()) :: [Square.t()]
   def list_legal_moves(
         %Game{
-          color_at_play: color_at_play,
+          active_color: active_color,
           board: board,
           en_passant_file: en_passant_file,
           castling_rights: castling_rights,
@@ -36,7 +36,7 @@ defmodule ExChess do
     piece = Board.get(board, from_square)
 
     MoveGeneration.stream(
-      color_at_play,
+      active_color,
       board,
       en_passant_file,
       castling_rights,
@@ -54,6 +54,6 @@ defmodule ExChess do
   @spec resign(Game.t()) :: Game.t() | :error
   def resign(%Game{status: status}) when status != :continue, do: :error
 
-  def resign(game = %Game{color_at_play: color}),
-    do: %Game{game | status: {Piece.flip_color(color), :resignation}}
+  def resign(game = %Game{active_color: active_color}),
+    do: %Game{game | status: {Piece.flip_color(active_color), :resignation}}
 end
