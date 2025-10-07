@@ -135,4 +135,9 @@ defmodule ExChessTest.Assert do
   def fifty_move_rule(%Game{status: game_status}) do
     assert game_status == {:tie, :fifty_move_rule}
   end
+
+  def fullmove_number(game = %Game{fullmove_number: fullmove_number}, expected_fullmove_number) do
+    assert fullmove_number == expected_fullmove_number
+    game
+  end
 end
