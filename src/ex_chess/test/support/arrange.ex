@@ -1,7 +1,9 @@
 defmodule ExChessTest.Arrange do
-  alias ExChess.{Game, Board, Move, Square, Piece}
+  alias ExChess.{Fen, Game, Board, Move, Square, Piece}
 
   def new_game(), do: ExChess.start_game()
+
+  def new_game(fen), do: Fen.to_game(fen)
 
   def game_board(game, board_text) do
     board = read_board(board_text)
