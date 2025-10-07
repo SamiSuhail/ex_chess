@@ -28,6 +28,7 @@ defmodule ExChess.Game do
           halfmove_clock: halfmove_clock(),
           castling_rights: castling_rights(),
           repetition_history: repetition_history(),
+          fullmove_number: pos_integer(),
         }
   @enforce_keys [
     :status,
@@ -37,6 +38,7 @@ defmodule ExChess.Game do
     :castling_rights,
     :repetition_history,
     :halfmove_clock,
+    :fullmove_number,
   ]
   defstruct [
     :status,
@@ -46,6 +48,7 @@ defmodule ExChess.Game do
     :castling_rights,
     :repetition_history,
     :halfmove_clock,
+    :fullmove_number,
   ]
 
   @spec new() :: t()
@@ -60,25 +63,32 @@ defmodule ExChess.Game do
           black_kingside?: true,
           black_queenside?: true,
         },
-        nil,
-        0
+        nil
       )
 
   @spec new(
           Piece.color(),
           Board.t(),
-          castling_rights(),
+          castling_rights() | nil,
           en_passant_file(),
           halfmove_clock()
         ) :: t()
-  def new(active_color, board, castling_rights, en_passant_file, halfmove_clock) do
+  def new(
+        active_color,
+        board,
+        castling_rights \\ nil,
+        en_passant_file \\ nil,
+        halfmove_clock \\ 0,
+        fullmove_number \\ 1
+      ) do
     %__MODULE__{
       status: :continue,
       active_color: active_color,
       board: board,
       en_passant_file: en_passant_file,
-      castling_rights: castling_rights,
+      castling_rights: castling_rights || empty_castling_rights(),
       halfmove_clock: halfmove_clock,
+      fullmove_number: fullmove_number,
       repetition_history: %{
         {active_color, :erlang.phash2(board)} => 1,
       },

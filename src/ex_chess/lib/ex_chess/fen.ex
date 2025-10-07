@@ -8,8 +8,9 @@ defmodule ExChess.Fen do
         castling_rights: castling_rights,
         en_passant_file: en_passant_file,
         halfmove_clock: halfmove_clock,
+        fullmove_number: fullmove_number,
       }) do
-    "#{from_board(board)} #{from_active_color(active_color)} #{from_castling_rights(castling_rights)} #{from_en_passant_file(en_passant_file, active_color)} #{halfmove_clock} #{1}"
+    "#{from_board(board)} #{from_active_color(active_color)} #{from_castling_rights(castling_rights)} #{from_en_passant_file(en_passant_file, active_color)} #{halfmove_clock} #{fullmove_number}"
   end
 
   defp from_board(board) do
@@ -104,17 +105,19 @@ defmodule ExChess.Fen do
       castling_rights_fen,
       en_passant_square_fen,
       halfmove_clock_fen,
-      _fullmove_number_fen,
+      fullmove_number_fen,
     ] = String.split(fen, " ")
 
     {halfmove_clock, _rest} = Integer.parse(halfmove_clock_fen)
+    {fullmove_number, _rest} = Integer.parse(fullmove_number_fen)
 
     Game.new(
       to_active_color(active_color_fen),
       to_board(board_fen),
       to_castling_rights(castling_rights_fen),
       to_en_passant_file(en_passant_square_fen),
-      halfmove_clock
+      halfmove_clock,
+      fullmove_number
     )
   end
 

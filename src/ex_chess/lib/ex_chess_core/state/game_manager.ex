@@ -7,11 +7,13 @@ defmodule ExChessCore.State.GameManager do
 
   def updated(
         move_context = %MoveContext{
+          color: color,
           enemy_color: enemy_color,
           updated_board: updated_board,
           piece: piece,
           target_piece: target_piece,
           halfmove_clock: halfmove_clock,
+          fullmove_number: fullmove_number,
         }
       ) do
     reversible_move? = is_nil(target_piece) and piece != :p
@@ -22,6 +24,12 @@ defmodule ExChessCore.State.GameManager do
     {updated_repetition_history, repetitions_count} =
       repetition_history(move_context, updated_castling_rights, reversible_move?)
 
+    updated_fullmove_number =
+      case color do
+        :black -> fullmove_number + 1
+        :white -> fullmove_number
+      end
+
     %Game{
       active_color: enemy_color,
       status: game_status(move_context, repetitions_count),
@@ -30,6 +38,7 @@ defmodule ExChessCore.State.GameManager do
       castling_rights: updated_castling_rights,
       repetition_history: updated_repetition_history,
       halfmove_clock: (reversible_move? && halfmove_clock + 1) || 0,
+      fullmove_number: updated_fullmove_number,
     }
   end
 
