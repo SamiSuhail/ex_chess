@@ -20,6 +20,7 @@ defmodule ExChess.MixProject do
   defp deps do
     [
       {:freedom_formatter, ">= 2.0.0", only: :dev},
+      {:benchee, "~> 1.0", only: :dev},
     ]
   end
 end
