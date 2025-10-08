@@ -1,0 +1,58 @@
+Operating System: Linux
+CPU Information: 11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz
+Number of Available Cores: 16
+Available memory: 31.11 GB
+Elixir 1.18.4
+Erlang 28.1
+JIT enabled: true
+
+Benchmark suite executing with the following configuration:
+warmup: 2 s
+time: 10 s
+memory time: 5 s
+reduction time: 0 ns
+parallel: 1
+inputs: none specified
+Estimated total run time: 34 s
+
+Benchmarking default_3 ...
+0
+1
+2
+3
+0
+1
+2
+3
+0
+1
+2
+3
+Benchmarking kiwipete_2 ...
+0
+1
+2
+0
+1
+2
+0
+1
+2
+Calculating statistics...
+Formatting results...
+
+Name                 ips        average  deviation         median         99th %
+kiwipete_2        0.0207       0.80 min     ±0.00%       0.80 min       0.80 min
+default_3         0.0148       1.13 min     ±0.00%       1.13 min       1.13 min
+
+Comparison: 
+kiwipete_2        0.0207
+default_3         0.0148 - 1.40x slower +0.32 min
+
+Memory usage statistics:
+
+Name          Memory usage
+kiwipete_2       352.27 MB
+default_3        232.64 MB - 0.66x memory usage -119.62862 MB
+
+**All measurements for memory usage were the same**
