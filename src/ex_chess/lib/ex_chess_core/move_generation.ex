@@ -12,11 +12,10 @@ defmodule ExChessCore.MoveGeneration do
         ) ::
           Enumerable.t(Square.t())
   def stream(color, board, en_passant_file, castling_rights, piece, square) do
-    targets(piece, square)
-    |> Enum.to_list()
-    |> Stream.filter(fn target_square ->
-      game = Game.new(color, board, castling_rights, en_passant_file)
+    game = Game.new(color, board, castling_rights, en_passant_file)
 
+    targets(piece, square)
+    |> Stream.filter(fn target_square ->
       move = Move.new(square, target_square)
       move_context = MoveContext.new(game, move)
 
@@ -94,7 +93,8 @@ defmodule ExChessCore.MoveGeneration do
     {-1, -1},
   ]
 
-  defp targets(piece, from_square) do
+  @spec targets(Piece.t(), Square.t()) :: Enumerable.t(Square.t())
+  def targets(piece, from_square) do
     patterns(piece)
     |> Stream.map(fn {file_shift, rank_shift} ->
       Square.shift(from_square, file_shift, rank_shift)

@@ -1,4 +1,5 @@
-defmodule ExChess.Search do
+defmodule ExChessCore.Search do
+  alias ExChessCore.{MoveContext, MoveGeneration, MoveEvaluation, State.GameManager}
   alias ExChess.{Game, Board, Move}
 
   def run(game, layers_count) do
@@ -23,21 +24,20 @@ defmodule ExChess.Search do
 
   defp enumerate_next_positions(game = %Game{active_color: color, board: board}) do
     Board.get_pieces_by_color(board, color)
-    |> Enum.flat_map(fn {square, _piece} -> enumerate_next_positions_for_square(game, square) end)
+    |> Enum.flat_map(fn {square, piece} ->
+      enumerate_next_positions_for_square(game, square, piece)
+    end)
   end
 
-  defp enumerate_next_positions_for_square(game, square) do
-    ExChess.list_legal_moves(game, square)
-    |> Enum.map(fn target_square ->
+  defp enumerate_next_positions_for_square(game, square, piece) do
+    MoveGeneration.targets(piece, square)
+    |> Stream.map(fn target_square ->
       move = Move.new(square, target_square)
-      next_game = ExChess.move(game, move)
 
-      if next_game == :error do
-        %{move: move, game: game} |> dbg()
-        raise "Unexpected error!"
-      end
-
-      next_game
+      MoveContext.new(game, move)
+      |> MoveEvaluation.run()
+      |> GameManager.updated()
     end)
+    |> Stream.filter(fn result -> result != :error end)
   end
 end

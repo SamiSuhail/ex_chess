@@ -3,8 +3,8 @@ kiwipete_game = ExChess.Fen.to_game("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PP
 
 Benchee.run(
   %{
-    "default_3" => fn -> ExChess.Search.run(default_game, 3) end,
-    "kiwipete_2" => fn -> ExChess.Search.run(kiwipete_game, 2) end
+    "default_3" => fn -> ExChessCore.Search.run(default_game, 3) end,
+    "kiwipete_2" => fn -> ExChessCore.Search.run(kiwipete_game, 2) end
   },
   time: 10,
   memory_time: 5

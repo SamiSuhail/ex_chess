@@ -1,3 +1,5 @@
+Compiling 2 files (.ex)
+Generated ex_chess app
 Operating System: Linux
 CPU Information: 11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz
 Number of Available Cores: 16
@@ -42,17 +44,17 @@ Calculating statistics...
 Formatting results...
 
 Name                 ips        average  deviation         median         99th %
-kiwipete_2        0.0207       0.80 min     ±0.00%       0.80 min       0.80 min
-default_3         0.0148       1.13 min     ±0.00%       1.13 min       1.13 min
+kiwipete_2        0.0255        39.21 s     ±0.00%        39.21 s        39.21 s
+default_3         0.0217        46.14 s     ±0.00%        46.14 s        46.14 s
 
 Comparison: 
-kiwipete_2        0.0207
-default_3         0.0148 - 1.40x slower +0.32 min
+kiwipete_2        0.0255
+default_3         0.0217 - 1.18x slower +6.93 s
 
 Memory usage statistics:
 
 Name          Memory usage
-kiwipete_2       352.27 MB
-default_3        232.64 MB - 0.66x memory usage -119.62862 MB
+kiwipete_2       349.33 MB
+default_3        232.61 MB - 0.67x memory usage -116.71574 MB
 
 **All measurements for memory usage were the same**
