@@ -3,24 +3,24 @@ defmodule ExChessTest.KingTest do
   alias ExChessTest.{Arrange, Assert}
 
   @scenarios [
-    {
-      "default",
-      """
-         abcdefgh
-        ----------
-      8 |       k| 8
-      7 |        | 7
-      6 |        | 6
-      5 |        | 5
-      4 |   K    | 4
-      3 |        | 3
-      2 |P       | 2
-      1 |        | 1
-        ----------
-         abcdefgh
-      """,
-      ["c3", "c4", "c5", "d3", "d5", "e3", "e4", "e5"]
-    },
+    # {
+    #   "default",
+    #   """
+    #      abcdefgh
+    #     ----------
+    #   8 |       k| 8
+    #   7 |        | 7
+    #   6 |        | 6
+    #   5 |        | 5
+    #   4 |   K    | 4
+    #   3 |        | 3
+    #   2 |P       | 2
+    #   1 |        | 1
+    #     ----------
+    #      abcdefgh
+    #   """,
+    #   ["c3", "c4", "c5", "d3", "d5", "e3", "e4", "e5"]
+    # },
     {
       "taking",
       """

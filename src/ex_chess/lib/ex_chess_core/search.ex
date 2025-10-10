@@ -1,5 +1,5 @@
 defmodule ExChessCore.Search do
-  alias ExChessCore.{MoveContext, MoveGeneration, MoveEvaluation, State.GameManager}
+  alias ExChessCore.{MoveContext, PiecePatterns, MoveEvaluation, State.GameManager}
   alias ExChess.{Game, Board, Move}
 
   def run(game, layers_count) do
@@ -30,7 +30,7 @@ defmodule ExChessCore.Search do
   end
 
   defp enumerate_next_positions_for_square(game, square, piece) do
-    MoveGeneration.targets(piece, square)
+    PiecePatterns.targets(piece, square)
     |> Stream.map(fn target_square ->
       move = Move.new(square, target_square)
 

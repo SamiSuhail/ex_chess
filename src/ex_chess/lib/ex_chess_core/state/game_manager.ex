@@ -111,13 +111,11 @@ defmodule ExChessCore.State.GameManager do
       Enum.find(enemy_pieces, fn {_square, %Piece{type: piece}} -> piece == :k end)
 
     enemy_in_check? =
-      Board.get_pieces_by_color(updated_board, color)
-      |> Enum.any?(fn {square, %Piece{type: piece}} ->
-        match?(
-          %MoveContext{valid?: true},
-          PieceRules.evaluate_king_threats(updated_board, color, piece, square, enemy_king_square)
-        )
-      end)
+      PieceRules.king_threatened?(
+        updated_board,
+        enemy_king_square,
+        color
+      )
 
     cond do
       enemy_stuck? and enemy_in_check? ->
