@@ -14,7 +14,7 @@ defmodule ExChessCore.MoveGeneration do
   def stream(color, board, en_passant_file, castling_rights, piece, square) do
     game = Game.new(color, board, castling_rights, en_passant_file)
 
-    PiecePatterns.targets(piece, square)
+    PiecePatterns.targets(board, piece, square)
     |> Stream.filter(fn target_square ->
       move = Move.new(square, target_square)
       move_context = MoveContext.new(game, move)

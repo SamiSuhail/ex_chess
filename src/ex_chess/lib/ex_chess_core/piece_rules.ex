@@ -26,8 +26,7 @@ defmodule ExChessCore.PieceRules do
        ) do
     king_color = Piece.flip_color(active_color)
 
-    Piece.new(piece, king_color)
-    |> PiecePatterns.targets(king_square)
+    PiecePatterns.targets(board, Piece.new(piece, king_color), king_square)
     |> Stream.filter(fn enemy_square ->
       case Board.get(board, enemy_square) do
         %Piece{type: ^piece, color: ^active_color} -> true

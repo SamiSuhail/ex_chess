@@ -30,7 +30,7 @@ defmodule ExChessCore.Search do
   end
 
   defp enumerate_next_positions_for_square(game, square, piece) do
-    PiecePatterns.targets(piece, square)
+    PiecePatterns.targets(game.board, piece, square)
     |> Stream.map(fn target_square ->
       move = Move.new(square, target_square)
 
