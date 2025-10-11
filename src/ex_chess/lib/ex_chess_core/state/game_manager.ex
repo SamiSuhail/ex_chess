@@ -135,7 +135,7 @@ defmodule ExChessCore.State.GameManager do
 
   defp has_moves?(enemy_pieces, updated_board, en_passant_file, castling_rights) do
     enemy_pieces
-    |> Enum.map(fn {square, piece} ->
+    |> Enum.any?(fn {square, piece} ->
       MoveGeneration.stream(
         piece.color,
         updated_board,
@@ -144,10 +144,8 @@ defmodule ExChessCore.State.GameManager do
         piece,
         square
       )
-      |> Enum.to_list()
       |> Enum.any?()
     end)
-    |> Enum.any?()
   end
 
   defp insufficient_material?(player_pieces) do

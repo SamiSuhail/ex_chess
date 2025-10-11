@@ -5,7 +5,7 @@ defmodule ExChessCore.Search do
   def run(game, layers_count) do
     0..layers_count
     |> Enum.reduce([game], fn layer, curr_games ->
-      IO.puts(layer)
+      IO.puts("Layer #{layer} started...")
       next_layer(curr_games)
     end)
   end
@@ -24,7 +24,7 @@ defmodule ExChessCore.Search do
 
   defp enumerate_next_positions(game = %Game{active_color: color, board: board}) do
     Board.get_pieces_by_color(board, color)
-    |> Enum.flat_map(fn {square, piece} ->
+    |> Stream.flat_map(fn {square, piece} ->
       enumerate_next_positions_for_square(game, square, piece)
     end)
   end
