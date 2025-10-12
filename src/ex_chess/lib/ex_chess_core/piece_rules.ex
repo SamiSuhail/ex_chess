@@ -1,6 +1,6 @@
 defmodule ExChessCore.PieceRules do
   alias ExChess.{Game, Board, Move, Square, Piece}
-  alias ExChessCore.MoveContext
+  alias ExChessCore.{MoveContext, PiecePatterns}
   alias ExChessCore.PieceRules.{KingRules, KnightRules, LinearPieceRules, PawnRules}
 
   @spec evaluate(MoveContext.t()) :: MoveContext.t()
@@ -10,14 +10,38 @@ defmodule ExChessCore.PieceRules do
     evaluate_internal(move_context, false)
   end
 
-  @spec evaluate_king_threats(Board.t(), Piece.color(), Piece.type(), Square.t(), Square.t()) ::
-          MoveContext.t()
-  def evaluate_king_threats(board, enemy_color, enemy_piece, enemy_square, king_square) do
+  @piece_types [:n, :q, :r, :b, :p, :k]
+  @spec king_threatened?(Board.t(), Square.t(), Piece.color()) :: boolean()
+  def king_threatened?(board, king_square, enemy_color) do
     game = Game.new(enemy_color, board)
-    move = Move.new(enemy_square, king_square)
 
-    %MoveContext{MoveContext.new(game, move) | piece: enemy_piece, target_piece: :k}
-    |> evaluate_internal(true)
+    @piece_types
+    |> Enum.any?(fn piece -> threatening_king?(piece, game, king_square) end)
+  end
+
+  defp threatening_king?(
+         piece,
+         game = %Game{active_color: active_color, board: board},
+         king_square
+       ) do
+    king_color = Piece.flip_color(active_color)
+
+    PiecePatterns.targets(board, Piece.new(piece, king_color), king_square)
+    |> Stream.filter(fn enemy_square ->
+      case Board.get(board, enemy_square) do
+        %Piece{type: ^piece, color: ^active_color} -> true
+        _ -> false
+      end
+    end)
+    |> Enum.any?(fn enemy_square ->
+      move = Move.new(enemy_square, king_square)
+
+      result =
+        %MoveContext{MoveContext.new(game, move) | piece: piece, target_piece: :k}
+        |> evaluate_internal(true)
+
+      match?(%MoveContext{valid?: true}, result)
+    end)
   end
 
   defp evaluate_internal(move_context = %MoveContext{piece: piece_type}, king_threats_only?) do

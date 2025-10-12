@@ -1,5 +1,5 @@
 defmodule ExChessCore.PieceRules.KingRules do
-  alias ExChess.{Board, Square, Piece}
+  alias ExChess.{Board, Square}
   alias ExChessCore.{MoveContext, PieceRules}
   import MoveContext
 
@@ -77,21 +77,13 @@ defmodule ExChessCore.PieceRules.KingRules do
       |> Enum.map(&Square.shift(square, &1, 0))
 
     any_square_attacked? =
-      Board.get_pieces_by_color(board, enemy_color)
-      |> Enum.any?(fn {enemy_square, %Piece{type: enemy_piece}} ->
-        vulnerable_squares
-        |> Enum.any?(fn vulnerable_square ->
-          %MoveContext{valid?: valid?} =
-            PieceRules.evaluate_king_threats(
-              board,
-              enemy_color,
-              enemy_piece,
-              enemy_square,
-              vulnerable_square
-            )
-
-          valid?
-        end)
+      vulnerable_squares
+      |> Enum.any?(fn vulnerable_square ->
+        PieceRules.king_threatened?(
+          board,
+          vulnerable_square,
+          enemy_color
+        )
       end)
 
     not any_square_attacked?

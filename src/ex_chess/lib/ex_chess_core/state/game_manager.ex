@@ -111,13 +111,11 @@ defmodule ExChessCore.State.GameManager do
       Enum.find(enemy_pieces, fn {_square, %Piece{type: piece}} -> piece == :k end)
 
     enemy_in_check? =
-      Board.get_pieces_by_color(updated_board, color)
-      |> Enum.any?(fn {square, %Piece{type: piece}} ->
-        match?(
-          %MoveContext{valid?: true},
-          PieceRules.evaluate_king_threats(updated_board, color, piece, square, enemy_king_square)
-        )
-      end)
+      PieceRules.king_threatened?(
+        updated_board,
+        enemy_king_square,
+        color
+      )
 
     cond do
       enemy_stuck? and enemy_in_check? ->
@@ -137,7 +135,7 @@ defmodule ExChessCore.State.GameManager do
 
   defp has_moves?(enemy_pieces, updated_board, en_passant_file, castling_rights) do
     enemy_pieces
-    |> Enum.map(fn {square, piece} ->
+    |> Enum.any?(fn {square, piece} ->
       MoveGeneration.stream(
         piece.color,
         updated_board,
@@ -146,10 +144,8 @@ defmodule ExChessCore.State.GameManager do
         piece,
         square
       )
-      |> Enum.to_list()
       |> Enum.any?()
     end)
-    |> Enum.any?()
   end
 
   defp insufficient_material?(player_pieces) do

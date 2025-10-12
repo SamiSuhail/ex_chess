@@ -97,7 +97,10 @@ defmodule ExChessCore.MoveEvaluation do
   defp evaluate_check_respected(move_context = %MoveContext{valid?: false}), do: move_context
 
   defp evaluate_check_respected(
-         move_context = %MoveContext{updated_board: updated_board, enemy_color: enemy_color}
+         move_context = %MoveContext{
+           updated_board: updated_board,
+           enemy_color: enemy_color,
+         }
        ) do
     {king_square, _king} =
       Enum.find(updated_board, fn {_, curr_piece} ->
@@ -105,19 +108,11 @@ defmodule ExChessCore.MoveEvaluation do
       end)
 
     king_threatened? =
-      Board.get_pieces_by_color(updated_board, enemy_color)
-      |> Enum.any?(fn {enemy_square, %Piece{type: enemy_piece}} ->
-        move_context =
-          PieceRules.evaluate_king_threats(
-            updated_board,
-            enemy_color,
-            enemy_piece,
-            enemy_square,
-            king_square
-          )
-
-        move_context.valid?
-      end)
+      PieceRules.king_threatened?(
+        updated_board,
+        king_square,
+        enemy_color
+      )
 
     if king_threatened? do
       MoveContext.error(move_context, :king_checked_after_move)
