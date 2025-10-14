@@ -1,5 +1,5 @@
 defmodule ExChessCore.PieceRules.LinearPieceRules do
-  alias ExChess.Square
+  alias ExChess.{Board, Square}
   alias ExChessCore.MoveContext
   import MoveContext
 
@@ -60,6 +60,9 @@ defmodule ExChessCore.PieceRules.LinearPieceRules do
 
       Square.same_location?(square, target_square) ->
         :ok
+
+      not Board.square_empty?(board, square) ->
+        {:error, :path_not_clear, %{collision_square: square}}
 
       true ->
         verify_path(
