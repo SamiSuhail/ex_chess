@@ -1,6 +1,6 @@
 defmodule ExChessTest.Assert do
   import ExUnit.Assertions
-  alias ExChess.{Visualization, Game, Board, Square, Piece}
+  alias ExChess.{Visualization, Game, Board, Square}
 
   @rank_joiner "\n"
   @file_joiner ""
@@ -57,8 +57,8 @@ defmodule ExChessTest.Assert do
 
   defp legal_moves_square_label(piece, square, legal_moves) do
     if square in legal_moves,
-      do: "[#{piece_label(piece)}]",
-      else: " #{piece_label(piece)} "
+      do: "[#{Visualization.Board.piece_label(piece)}]",
+      else: " #{Visualization.Board.piece_label(piece)} "
   end
 
   defp square_to_text(%Square{file: file, rank: rank}),
