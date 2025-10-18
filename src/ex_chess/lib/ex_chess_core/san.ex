@@ -1,9 +1,11 @@
-defmodule ExChess.San do
+defmodule ExChessCore.San do
   alias ExChessCore.MoveEvaluation
   alias ExChessCore.MoveContext
   alias ExChess.{Game, Board, Move, Square, Piece}
 
-  @spec make_moves(Game.t(), binary()) :: Game.t() | :error
+  @type t() :: binary()
+
+  @spec make_moves(Game.t(), t()) :: Game.t() | :error
   def make_moves(game, moves_text) do
     moves_text
     |> String.split(" ", trim: true)
@@ -12,19 +14,24 @@ defmodule ExChess.San do
         :error
 
       move_text, curr_game ->
-        make_move(curr_game, move_text)
+        move = parse_move(curr_game, move_text)
+        ExChess.move(curr_game, move)
     end)
   end
 
-  defp make_move(game, <<_first_char, ?., rest::binary>>), do: make_move(game, rest)
-  defp make_move(game, <<_first_char, _second_char, ?., rest::binary>>), do: make_move(game, rest)
+  @spec parse_move(Game.t(), t()) :: Move.t()
+  def parse_move(game, move_text)
+  def parse_move(game, <<_first_char, ?., rest::binary>>), do: parse_move(game, rest)
 
-  defp make_move(game, <<_first_char, _second_char, _third_char, ?., rest::binary>>),
-    do: make_move(game, rest)
+  def parse_move(game, <<_first_char, _second_char, ?., rest::binary>>),
+    do: parse_move(game, rest)
+
+  def parse_move(game, <<_first_char, _second_char, _third_char, ?., rest::binary>>),
+    do: parse_move(game, rest)
 
   @white_king_square Square.new(4, 0)
   @black_king_square Square.new(4, 7)
-  defp make_move(game = %Game{active_color: active_color}, <<?O, rest::binary>>) do
+  def parse_move(%Game{active_color: active_color}, <<?O, rest::binary>>) do
     type = parse_castle(rest)
 
     from =
@@ -40,12 +47,10 @@ defmodule ExChess.San do
         :kingside -> 6
       end
 
-    move = Move.new(from, Square.new(to_file, rank))
-
-    ExChess.move(game, move)
+    Move.new(from, Square.new(to_file, rank))
   end
 
-  defp make_move(game = %Game{board: board, active_color: active_color}, move_text) do
+  def parse_move(game = %Game{board: board, active_color: active_color}, move_text) do
     {piece, first_file, first_rank, second_file, second_rank, promotion} =
       parse_non_castle(move_text)
 
@@ -79,9 +84,7 @@ defmodule ExChess.San do
           )
       end)
 
-    move = Move.new(from_square, to_square, promotion)
-
-    ExChess.move(game, move)
+    Move.new(from_square, to_square, promotion)
   end
 
   defp parse_castle(<<?-, ?O, ?-, ?O, _rest::binary>>), do: :queenside

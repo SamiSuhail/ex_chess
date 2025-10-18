@@ -3,7 +3,8 @@ defmodule ExChess do
     MoveContext,
     State.GameManager,
     MoveEvaluation,
-    MoveGeneration
+    MoveGeneration,
+    San
   }
 
   alias ExChess.{Game, Board, Move, Square, Piece}
@@ -11,7 +12,8 @@ defmodule ExChess do
   @spec start_game() :: Game.t()
   def start_game(), do: Game.new()
 
-  @spec move(Game.t(), Move.t()) :: Game.t() | :error
+  @spec move(Game.t(), Move.t() | San.t()) :: Game.t() | :error
+  def move(game, move) when is_binary(move), do: move(game, San.parse_move(game, move))
   def move(%Game{status: game_status}, _move) when game_status != :continue, do: :error
 
   def move(
