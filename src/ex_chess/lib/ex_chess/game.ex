@@ -16,9 +16,7 @@ defmodule ExChess.Game do
           black_queenside?: boolean(),
         }
 
-  # todo: actual FEN?
-  @type fen() :: non_neg_integer()
-  @type repetition_history() :: %{{Piece.color(), fen()} => pos_integer()}
+  @type repetition_history() :: %{{Piece.color(), non_neg_integer()} => pos_integer()}
 
   @type t() :: %__MODULE__{
           status: status(),
@@ -115,5 +113,33 @@ defmodule ExChess.Game do
       Map.put(repetition_history, position_key, count),
       count
     }
+  end
+end
+
+defimpl Inspect, for: ExChess.Game do
+  alias ExChess.{Fen, Visualization}
+
+  def inspect(game = %ExChess.Game{}, _opts) do
+    status =
+      case game.status do
+        :continue ->
+          "*"
+
+        {:white, _reason} ->
+          "1-0"
+
+        {:black, _reason} ->
+          "0-1"
+
+        _ ->
+          "1/2-1/2"
+      end
+
+    """
+    STATUS: #{status}
+    FEN: #{Fen.from_game(game)}
+    BOARD:
+    #{Visualization.Board.inspect(game.board)}
+    """
   end
 end
