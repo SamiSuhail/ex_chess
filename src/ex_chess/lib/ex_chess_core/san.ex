@@ -5,29 +5,8 @@ defmodule ExChessCore.San do
 
   @type t() :: binary()
 
-  @spec make_moves(Game.t(), t()) :: Game.t() | :error
-  def make_moves(game, moves_text) do
-    moves_text
-    |> String.split(" ", trim: true)
-    |> Enum.reduce(game, fn
-      :error, _move_text ->
-        :error
-
-      move_text, curr_game ->
-        move = parse_move(curr_game, move_text)
-        ExChess.move(curr_game, move)
-    end)
-  end
-
   @spec parse_move(Game.t(), t()) :: Move.t()
   def parse_move(game, move_text)
-  def parse_move(game, <<_first_char, ?., rest::binary>>), do: parse_move(game, rest)
-
-  def parse_move(game, <<_first_char, _second_char, ?., rest::binary>>),
-    do: parse_move(game, rest)
-
-  def parse_move(game, <<_first_char, _second_char, _third_char, ?., rest::binary>>),
-    do: parse_move(game, rest)
 
   @white_king_square Square.new(4, 0)
   @black_king_square Square.new(4, 7)
