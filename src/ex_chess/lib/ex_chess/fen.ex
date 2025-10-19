@@ -1,7 +1,9 @@
 defmodule ExChess.Fen do
   alias ExChess.{Game, Board, Square, Piece}
 
-  @spec from_game(Game.t()) :: binary()
+  @type t() :: binary()
+
+  @spec from_game(Game.t()) :: t()
   def from_game(%Game{
         board: board,
         active_color: active_color,
@@ -97,7 +99,7 @@ defmodule ExChess.Fen do
   defp from_file(6), do: "g"
   defp from_file(7), do: "h"
 
-  @spec to_game(binary()) :: Game.t()
+  @spec to_game(t()) :: Game.t()
   def to_game(fen) do
     [
       board_fen,

@@ -7,10 +7,12 @@ defmodule ExChess do
     San
   }
 
-  alias ExChess.{Game, Board, Move, Square, Piece}
+  alias ExChess.{Fen, Game, Board, Move, Square, Piece}
 
-  @spec start_game() :: Game.t()
-  def start_game(), do: Game.new()
+  @spec start_game(Fen.t() | nil) :: Game.t()
+  def start_game(fen \\ nil)
+  def start_game(nil), do: Game.new()
+  def start_game(fen), do: Fen.to_game(fen)
 
   @spec move(Game.t(), Move.t() | San.t()) :: Game.t() | :error
   def move(game, move) when is_binary(move), do: move(game, San.parse_move(game, move))
