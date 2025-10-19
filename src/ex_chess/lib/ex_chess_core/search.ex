@@ -4,8 +4,7 @@ defmodule ExChessCore.Search do
 
   def run(game, layers_count) do
     0..layers_count
-    |> Enum.reduce([game], fn layer, curr_games ->
-      IO.puts("Layer #{layer} started...")
+    |> Enum.reduce([game], fn _layer, curr_games ->
       next_layer(curr_games)
     end)
   end
