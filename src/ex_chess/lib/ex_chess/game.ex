@@ -4,7 +4,13 @@ defmodule ExChess.Game do
   @type status() ::
           :continue
           | {:win, Piece.color(), :checkmate | :resignation}
-          | {:tie, :stalemate | :insufficient_material | :threefold_repetition | :fifty_move_rule}
+          | {:tie,
+             :stalemate
+             | :insufficient_material
+             | :threefold_repetition
+             | :fivefold_repetition
+             | :fifty_move_rule
+             | :seventy_five_move_rule}
 
   @type en_passant_file() :: non_neg_integer() | nil
   @type halfmove_clock() :: non_neg_integer()
@@ -26,6 +32,7 @@ defmodule ExChess.Game do
           halfmove_clock: halfmove_clock(),
           castling_rights: castling_rights(),
           repetition_history: repetition_history(),
+          max_repetitions: pos_integer(),
           fullmove_number: pos_integer(),
         }
   @enforce_keys [
@@ -35,6 +42,7 @@ defmodule ExChess.Game do
     :en_passant_file,
     :castling_rights,
     :repetition_history,
+    :max_repetitions,
     :halfmove_clock,
     :fullmove_number,
   ]
@@ -45,6 +53,7 @@ defmodule ExChess.Game do
     :en_passant_file,
     :castling_rights,
     :repetition_history,
+    :max_repetitions,
     :halfmove_clock,
     :fullmove_number,
   ]
@@ -90,6 +99,7 @@ defmodule ExChess.Game do
       repetition_history: %{
         {active_color, :erlang.phash2(board)} => 1,
       },
+      max_repetitions: 1,
     }
   end
 

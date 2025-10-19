@@ -95,8 +95,16 @@ defmodule ExChessTest.Assert do
     assert game_status == {:tie, :threefold_repetition}
   end
 
+  def fivefold_repetition(%Game{status: game_status}) do
+    assert game_status == {:tie, :fivefold_repetition}
+  end
+
   def fifty_move_rule(%Game{status: game_status}) do
     assert game_status == {:tie, :fifty_move_rule}
+  end
+
+  def seventy_five_move_rule(%Game{status: game_status}) do
+    assert game_status == {:tie, :seventy_five_move_rule}
   end
 
   def fullmove_number(game = %Game{fullmove_number: fullmove_number}, expected_fullmove_number) do

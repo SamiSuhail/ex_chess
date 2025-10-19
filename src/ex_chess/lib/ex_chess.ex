@@ -50,8 +50,14 @@ defmodule ExChess do
 
   @spec claim_draw(Game.t()) :: Game.t() | :error
   def claim_draw(%Game{status: status}) when status != :continue, do: :error
-  def claim_draw(%Game{halfmove_clock: halfmove_clock}) when halfmove_clock < 100, do: :error
-  def claim_draw(game = %Game{}), do: %Game{game | status: {:tie, :fifty_move_rule}}
+
+  def claim_draw(game = %Game{halfmove_clock: halfmove_clock}) when halfmove_clock >= 100,
+    do: %Game{game | status: {:tie, :fifty_move_rule}}
+
+  def claim_draw(game = %Game{max_repetitions: max_repetitions}) when max_repetitions >= 3,
+    do: %Game{game | status: {:tie, :threefold_repetition}}
+
+  def claim_draw(%Game{}), do: :error
 
   @spec resign(Game.t()) :: Game.t() | :error
   def resign(%Game{status: status}) when status != :continue, do: :error
