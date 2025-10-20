@@ -5,7 +5,7 @@ defmodule ExChessCore.San do
 
   @type t() :: binary()
 
-  @spec parse_move(Game.t(), t()) :: Move.t()
+  @spec parse_move(Game.t(), t()) :: {:ok, Move.t()} | :error
   def parse_move(game, move_text)
 
   @white_king_square Square.new(4, 0)
@@ -26,7 +26,7 @@ defmodule ExChessCore.San do
         :kingside -> 6
       end
 
-    Move.new(from, Square.new(to_file, rank))
+    {:ok, Move.new(from, Square.new(to_file, rank))}
   end
 
   def parse_move(game = %Game{board: board, active_color: active_color}, move_text) do
@@ -48,7 +48,7 @@ defmodule ExChessCore.San do
           {first_file, first_rank, Square.new(second_file, second_rank)}
       end
 
-    {from_square, _piece} =
+    result =
       Board.get_pieces_by_color(board, active_color)
       |> Enum.find(fn {curr_square = %Square{file: curr_file, rank: curr_rank},
                        %Piece{type: curr_piece}} ->
@@ -63,7 +63,10 @@ defmodule ExChessCore.San do
           )
       end)
 
-    Move.new(from_square, to_square, promotion)
+    case result do
+      {from_square, _piece} -> {:ok, Move.new(from_square, to_square, promotion)}
+      nil -> :error
+    end
   end
 
   defp parse_castle(<<?-, ?O, ?-, ?O, _rest::binary>>), do: :queenside

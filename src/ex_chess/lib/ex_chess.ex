@@ -52,7 +52,13 @@ defmodule ExChess do
   def start_game(fen), do: Fen.to_game(fen)
 
   @spec move(Game.t(), Move.t() | San.t()) :: Game.t() | :error
-  def move(game, move) when is_binary(move), do: move(game, San.parse_move(game, move))
+  def move(game, move) when is_binary(move) do
+    case San.parse_move(game, move) do
+      :error -> :error
+      {:ok, parsed_move} -> move(game, parsed_move)
+    end
+  end
+
   def move(%Game{status: game_status}, _move) when game_status != :continue, do: :error
 
   def move(
