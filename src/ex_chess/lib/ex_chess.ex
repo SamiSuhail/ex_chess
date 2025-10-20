@@ -8,44 +8,34 @@ defmodule ExChess do
 
       iex> ExChess.start_game()
       ...> |> ExChess.Visualization.game()
-  "STATUS: * | FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+      "STATUS: * | FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
   ### Starting a game using FEN
 
       iex> ExChess.start_game("rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2")
       ...> |> ExChess.Visualization.game()
-  "STATUS: * | FEN: rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2"
+      "STATUS: * | FEN: rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2"
 
-  ### Making a move using SAN
+  ### Making a move
 
       iex> ExChess.start_game()
       ...> |> ExChess.move("Nf3")
       ...> |> ExChess.move("Nf6")
       ...> |> ExChess.Visualization.game()
-  "STATUS: * | FEN: rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2"
-
-  ### Making a move using structs
-
-      iex> first_move = ExChess.Move.new(ExChess.Square.new(6, 0), ExChess.Square.new(5, 2))
-      ...> second_move = ExChess.Move.new(ExChess.Square.new(6, 7), ExChess.Square.new(5, 5))
-      ...> ExChess.start_game()
-      ...> |> ExChess.move(first_move)
-      ...> |> ExChess.move(second_move)
-      ...> |> ExChess.Visualization.game()
-  "STATUS: * | FEN: rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2"
+      "STATUS: * | FEN: rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2"
 
   ### Getting a piece from the board
 
       iex> game = ExChess.start_game()
       iex> square = ExChess.Square.new(0, 0)
       iex> ExChess.Board.get(game.board, square)
-  %ExChess.Piece{type: :r, color: :white}
+      %ExChess.Piece{type: :r, color: :white}
 
-  ### Getting legal moves for a square
+  ### Getting legal moves for a piece
 
       iex> ExChess.start_game()
       ...> |> ExChess.list_legal_moves(ExChess.Square.new(1, 1))
-  [%ExChess.Square{file: 1, rank: 2}, %ExChess.Square{file: 1, rank: 3}]
+      [%ExChess.Square{file: 1, rank: 2}, %ExChess.Square{file: 1, rank: 3}]
   """
 
   alias ExChessCore.{
@@ -58,11 +48,63 @@ defmodule ExChess do
 
   alias ExChess.{Fen, Game, Board, Move, Square, Piece}
 
+  @doc """
+  Instantiates a new `ExChess.Game`. An optional `fen` string can be passed in to start the game at a particular position.
+
+  ## Examples
+
+  ### Starting a game
+
+      iex> ExChess.start_game()
+      ...> |> ExChess.Visualization.game()
+      "STATUS: * | FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+  ### Starting a game using FEN
+
+      iex> ExChess.start_game("rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2")
+      ...> |> ExChess.Visualization.game()
+      "STATUS: * | FEN: rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2"
+  """
   @spec start_game(Fen.t() | nil) :: Game.t()
   def start_game(fen \\ nil)
   def start_game(nil), do: Game.new()
   def start_game(fen), do: Fen.to_game(fen)
 
+  @doc """
+  Returns the updated `ExChess.Game` when the move is valid, and `:error` otherwise.
+
+  ## Examples
+
+  ### Making a move using SAN
+
+      iex> ExChess.start_game()
+      ...> |> ExChess.move("Nf3")
+      ...> |> ExChess.move("Nf6")
+      ...> |> ExChess.Visualization.game()
+      "STATUS: * | FEN: rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2"
+
+  ### Making a move using structs
+
+      iex> first_move = ExChess.Move.new(ExChess.Square.new(6, 0), ExChess.Square.new(5, 2))
+      ...> second_move = ExChess.Move.new(ExChess.Square.new(6, 7), ExChess.Square.new(5, 5))
+      ...> ExChess.start_game()
+      ...> |> ExChess.move(first_move)
+      ...> |> ExChess.move(second_move)
+      ...> |> ExChess.Visualization.game()
+      "STATUS: * | FEN: rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2"
+
+  ### Making an invalid move
+
+      iex> ExChess.start_game()
+      ...> |> ExChess.move("a2b3")
+      :error
+
+  ### Game already complete
+      iex> ExChess.start_game()
+      ...> |> ExChess.resign()
+      ...> |> ExChess.move("h3")
+      :error
+  """
   @spec move(Game.t(), Move.t() | San.t()) :: Game.t() | :error
   def move(game, move) when is_binary(move) do
     case San.parse_move(game, move) do
@@ -82,6 +124,17 @@ defmodule ExChess do
     |> GameManager.updated()
   end
 
+  @doc """
+  Lists all available target squares for the piece situated on `from_square`.
+
+  ## Examples
+
+  ### Getting legal moves for a piece
+
+      iex> ExChess.start_game()
+      ...> |> ExChess.list_legal_moves(ExChess.Square.new(1, 1))
+      [%ExChess.Square{file: 1, rank: 2}, %ExChess.Square{file: 1, rank: 3}]
+  """
   @spec list_legal_moves(Game.t(), Square.t()) :: [Square.t()]
   def list_legal_moves(
         %Game{
@@ -105,6 +158,42 @@ defmodule ExChess do
     |> Enum.to_list()
   end
 
+  @doc """
+  Allows the active player to claim a draw in case of either:
+  - 50 move rule
+  - threefold repetition
+
+  ## Examples
+
+  ### 50 move rule
+
+      iex> ExChess.start_game("knn5/8/8/8/8/8/8/KNN5 w - - 101 90") # 101 halfmoves
+      ...> |> ExChess.claim_draw()
+      ...> |> ExChess.Visualization.status()
+      "1/2-1/2"
+
+  ### Threefold repetition
+
+      iex> ExChess.start_game() # first occurence
+      ...> |> ExChess.move("Nc3") |> ExChess.move("Nc6")
+      ...> |> ExChess.move("Nb1") |> ExChess.move("Nb8") # second occurence
+      ...> |> ExChess.move("Nc3") |> ExChess.move("Nc6")
+      ...> |> ExChess.move("Nb1") |> ExChess.move("Nb8") # third occurence
+      ...> |> ExChess.claim_draw()
+      ...> |> ExChess.Visualization.status()
+      "1/2-1/2"
+
+  ### Draw unclaimable
+      iex> ExChess.start_game()
+      ...> |> ExChess.claim_draw()
+      :error
+
+  ### Game already complete
+      iex> ExChess.start_game()
+      ...> |> ExChess.resign()
+      ...> |> ExChess.claim_draw()
+      :error
+  """
   @spec claim_draw(Game.t()) :: Game.t() | :error
   def claim_draw(%Game{status: status}) when status != :continue, do: :error
 
@@ -116,6 +205,34 @@ defmodule ExChess do
 
   def claim_draw(%Game{}), do: :error
 
+  @doc """
+  Returns the update `ExChess.Game` with the current active color's side having resigned and the opponent is declared the winner.
+
+  If the game is already complete, this returns `:error`.
+
+  ## Examples
+
+  ### White resigns
+
+      iex> ExChess.start_game()
+      ...> |> ExChess.resign()
+      ...> |> ExChess.Visualization.status()
+      "0-1"
+
+  ### Black resigns
+
+      iex> ExChess.start_game()
+      ...> |> ExChess.move("a3")
+      ...> |> ExChess.resign()
+      ...> |> ExChess.Visualization.status()
+      "1-0"
+
+  ### Game already complete
+      iex> ExChess.start_game()
+      ...> |> ExChess.resign()
+      ...> |> ExChess.resign()
+      :error
+  """
   @spec resign(Game.t()) :: Game.t() | :error
   def resign(%Game{status: status}) when status != :continue, do: :error
 

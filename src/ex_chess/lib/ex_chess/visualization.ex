@@ -1,13 +1,13 @@
 defmodule ExChess.Visualization do
-  alias ExChess.{Fen, Board, Square, Piece}
+  alias ExChess.{Fen, Game, Board, Square, Piece}
 
   def game(game) do
-    "STATUS: #{status(game.status)} | FEN: #{Fen.from_game(game)}"
+    "STATUS: #{status(game)} | FEN: #{Fen.from_game(game)}"
   end
 
   def game_full(game) do
     """
-    STATUS: #{status(game.status)}
+    STATUS: #{status(game)}
     FEN: #{Fen.from_game(game)}
     BOARD: \n#{board(game.board)}
     """
@@ -56,8 +56,8 @@ defmodule ExChess.Visualization do
     "#{rank_label} |#{pieces_text}| #{rank_label}"
   end
 
-  defp status(:continue), do: "*"
-  defp status({:white, _reason}), do: "1-0"
-  defp status({:black, _reason}), do: "0-1"
-  defp status(_), do: "1/2-1/2"
+  def status(%Game{status: :continue}), do: "*"
+  def status(%Game{status: {:white, _reason}}), do: "1-0"
+  def status(%Game{status: {:black, _reason}}), do: "0-1"
+  def status(%Game{status: {:tie, _reason}}), do: "1/2-1/2"
 end
