@@ -127,29 +127,7 @@ defmodule ExChess.Game do
 end
 
 defimpl Inspect, for: ExChess.Game do
-  alias ExChess.{Fen, Visualization}
+  alias ExChess.Visualization
 
-  def inspect(game = %ExChess.Game{}, _opts) do
-    status =
-      case game.status do
-        :continue ->
-          "*"
-
-        {:white, _reason} ->
-          "1-0"
-
-        {:black, _reason} ->
-          "0-1"
-
-        _ ->
-          "1/2-1/2"
-      end
-
-    """
-    STATUS: #{status}
-    FEN: #{Fen.from_game(game)}
-    BOARD:
-    #{Visualization.Board.inspect(game.board)}
-    """
-  end
+  def inspect(game = %ExChess.Game{}, _opts), do: Visualization.game_full(game)
 end
