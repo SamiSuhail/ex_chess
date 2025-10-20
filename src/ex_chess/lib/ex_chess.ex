@@ -1,4 +1,41 @@
 defmodule ExChess do
+  @moduledoc """
+  ExChess is a, although still primitive, comprehensive implementation of the chess game rules in Elixir.
+
+  ## Examples
+
+  ### Starting a game
+  iex(1)> ExChess.start_game() |> ExChess.Visualization.game()
+  "STATUS: * | FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+  ### Starting a game using FEN
+  iex(2)> ExChess.start_game("rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2") |> ExChess.Visualization.game()
+  "STATUS: * | FEN: rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2"
+
+  ### Making a move using SAN
+  iex(3)> ExChess.start_game() |>
+  ...(3)> ExChess.move("Nf3") |>
+  ...(3)> ExChess.move("Nf6") |>
+  ...(3)> ExChess.Visualization.game()
+  "STATUS: * | FEN: rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2"
+
+  ### Making a move using structs
+  iex(4)> ExChess.start_game() |>
+  ...(4)> ExChess.move(ExChess.Move.new(ExChess.Square.new(6, 0), ExChess.Square.new(5, 2))) |>
+  ...(4)> ExChess.move(ExChess.Move.new(ExChess.Square.new(6, 7), ExChess.Square.new(5, 5))) |>
+  ...(4)> ExChess.Visualization.game()
+  "STATUS: * | FEN: rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2"
+
+  ### Getting a piece from the board
+  iex(5)> game = ExChess.start_game()
+  iex(6)> ExChess.Board.get(game.board, ExChess.Square.new(0, 0))
+  %ExChess.Piece{type: :r, color: :white}
+
+  ### Getting legal moves for a square
+  iex(7)> ExChess.start_game() |> ExChess.list_legal_moves(ExChess.Square.new(1, 1))
+  [%ExChess.Square{file: 1, rank: 2}, %ExChess.Square{file: 1, rank: 3}]
+  """
+
   alias ExChessCore.{
     MoveContext,
     State.GameManager,

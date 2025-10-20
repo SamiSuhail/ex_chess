@@ -1,6 +1,7 @@
 defmodule ExChessTest.GameTest do
   use ExUnit.Case
   alias ExChessTest.{Arrange, Assert}
+  doctest ExChess
 
   test "new game" do
     Arrange.new_game()
