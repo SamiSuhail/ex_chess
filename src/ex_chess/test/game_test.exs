@@ -3,6 +3,7 @@ defmodule ExChessTest.GameTest do
   alias ExChessTest.{Arrange, Assert}
   doctest ExChess
   doctest ExChess.Game
+  doctest ExChess.Visualization
   doctest ExChess.Board
   doctest ExChess.Move
   doctest ExChess.Square
