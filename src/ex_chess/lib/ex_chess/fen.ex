@@ -15,7 +15,7 @@ defmodule ExChess.Fen do
     "#{from_board(board)} #{from_active_color(active_color)} #{from_castling_rights(castling_rights)} #{from_en_passant_file(en_passant_file, active_color)} #{halfmove_clock} #{fullmove_number}"
   end
 
-  defp from_board(board) do
+  def from_board(board) do
     7..0//-1
     |> Enum.map(&from_rank(&1, board))
     |> Enum.join("/")
@@ -126,7 +126,7 @@ defmodule ExChess.Fen do
   defp to_active_color("w"), do: :white
   defp to_active_color("b"), do: :black
 
-  defp to_board(board_fen) do
+  def to_board(board_fen) do
     ranks = board_fen |> String.split("/")
 
     ranks
