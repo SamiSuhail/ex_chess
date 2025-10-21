@@ -2,6 +2,7 @@ defmodule ExChessTest.GameTest do
   use ExUnit.Case
   alias ExChessTest.{Arrange, Assert}
   doctest ExChess
+  doctest ExChess.Game
   doctest ExChess.Board
   doctest ExChess.Move
   doctest ExChess.Square
