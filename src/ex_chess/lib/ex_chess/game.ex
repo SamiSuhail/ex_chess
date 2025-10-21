@@ -112,18 +112,6 @@ defmodule ExChess.Game do
       black_queenside?: false,
     }
   end
-
-  @spec increment_repetition_history(repetition_history(), Piece.color(), Board.t()) ::
-          {repetition_history(), pos_integer()}
-  def increment_repetition_history(repetition_history = %{}, color, board) do
-    position_key = {color, :erlang.phash2(board)}
-    count = Map.get(repetition_history, position_key, 0) + 1
-
-    {
-      Map.put(repetition_history, position_key, count),
-      count
-    }
-  end
 end
 
 defimpl Inspect, for: ExChess.Game do

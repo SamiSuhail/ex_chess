@@ -93,7 +93,13 @@ defmodule ExChessCore.State.GameManager do
         repetition_history
       end
 
-    Game.increment_repetition_history(repetition_history, enemy_color, updated_board)
+    position_key = {enemy_color, :erlang.phash2(updated_board)}
+    count = Map.get(repetition_history, position_key, 0) + 1
+
+    {
+      Map.put(repetition_history, position_key, count),
+      count
+    }
   end
 
   defp game_status(_, repetitions_count, _)
