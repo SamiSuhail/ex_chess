@@ -5,9 +5,10 @@ defmodule ExChess.MixProject do
     [
       app: :ex_chess,
       version: "0.1.0",
-      elixir: "~> 1.18",
+      elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      test_ignore_filters: ["test/support/arrange.ex", "test/support/assert.ex"],
     ]
   end
 

@@ -5,7 +5,7 @@ defmodule ExChessTest.Arrange do
 
   def new_game(fen), do: Fen.to_game(fen)
 
-  def game_board(game, board_text) do
+  def game_board(game = %Game{}, board_text) do
     board = read_board(board_text)
 
     %Game{
@@ -15,7 +15,7 @@ defmodule ExChessTest.Arrange do
     }
   end
 
-  def game_turn(game, color),
+  def game_turn(game = %Game{}, color),
     do: %Game{game | active_color: color}
 
   def game_moves(game, moves_text) do
