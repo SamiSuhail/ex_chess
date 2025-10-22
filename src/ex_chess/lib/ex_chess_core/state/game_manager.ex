@@ -14,6 +14,7 @@ defmodule ExChessCore.State.GameManager do
           target_piece: target_piece,
           halfmove_clock: halfmove_clock,
           fullmove_number: fullmove_number,
+          max_repetitions: max_repetitions,
         }
       ) do
     reversible_move? = is_nil(target_piece) and piece != :p
@@ -30,15 +31,21 @@ defmodule ExChessCore.State.GameManager do
         :white -> fullmove_number
       end
 
+    updated_halfmove_clock = (reversible_move? && halfmove_clock + 1) || 0
+
+    updated_max_repetitions =
+      if max_repetitions > repetitions_count, do: max_repetitions, else: repetitions_count
+
     %Game{
       active_color: enemy_color,
-      status: game_status(move_context, repetitions_count),
+      status: game_status(move_context, updated_max_repetitions, updated_halfmove_clock),
       board: updated_board,
       en_passant_file: updated_en_passant_file,
       castling_rights: updated_castling_rights,
       repetition_history: updated_repetition_history,
-      halfmove_clock: (reversible_move? && halfmove_clock + 1) || 0,
+      halfmove_clock: updated_halfmove_clock,
       fullmove_number: updated_fullmove_number,
+      max_repetitions: updated_max_repetitions,
     }
   end
 
@@ -86,12 +93,22 @@ defmodule ExChessCore.State.GameManager do
         repetition_history
       end
 
-    Game.increment_repetition_history(repetition_history, enemy_color, updated_board)
+    position_key = {enemy_color, :erlang.phash2(updated_board)}
+    count = Map.get(repetition_history, position_key, 0) + 1
+
+    {
+      Map.put(repetition_history, position_key, count),
+      count
+    }
   end
 
-  defp game_status(_, repetitions_count)
-       when repetitions_count >= 3,
-       do: {:tie, :threefold_repetition}
+  defp game_status(_, repetitions_count, _)
+       when repetitions_count >= 5,
+       do: {:tie, :fivefold_repetition}
+
+  defp game_status(_, _, halfmove_clock)
+       when halfmove_clock >= 150,
+       do: {:tie, :seventy_five_move_rule}
 
   defp game_status(
          %MoveContext{
@@ -101,6 +118,7 @@ defmodule ExChessCore.State.GameManager do
            en_passant_file: en_passant_file,
            castling_rights: castling_rights,
          },
+         _,
          _
        ) do
     enemy_pieces = Board.get_pieces_by_color(updated_board, enemy_color)

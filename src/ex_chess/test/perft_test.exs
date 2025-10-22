@@ -39,7 +39,6 @@ defmodule ExChessTest.PerftTest do
       end)
 
     assert actual_count == expected_count
-    IO.puts("PERFT Success - #{expected_count}")
     next_games
   end
 

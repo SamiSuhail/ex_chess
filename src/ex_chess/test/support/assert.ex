@@ -5,7 +5,7 @@ defmodule ExChessTest.Assert do
   @rank_joiner "\n"
   @file_joiner ""
   def game_board(%Game{board: board}, expected_board_string) do
-    assert Visualization.Board.inspect(board) == expected_board_string
+    assert Visualization.board(board) == expected_board_string
   end
 
   def invalid_move(error), do: assert(error == :error)
@@ -57,8 +57,8 @@ defmodule ExChessTest.Assert do
 
   defp legal_moves_square_label(piece, square, legal_moves) do
     if square in legal_moves,
-      do: "[#{Visualization.Board.piece_label(piece)}]",
-      else: " #{Visualization.Board.piece_label(piece)} "
+      do: "[#{Visualization.piece_label(piece)}]",
+      else: " #{Visualization.piece_label(piece)} "
   end
 
   defp square_to_text(%Square{file: file, rank: rank}),
@@ -95,8 +95,16 @@ defmodule ExChessTest.Assert do
     assert game_status == {:tie, :threefold_repetition}
   end
 
+  def fivefold_repetition(%Game{status: game_status}) do
+    assert game_status == {:tie, :fivefold_repetition}
+  end
+
   def fifty_move_rule(%Game{status: game_status}) do
     assert game_status == {:tie, :fifty_move_rule}
+  end
+
+  def seventy_five_move_rule(%Game{status: game_status}) do
+    assert game_status == {:tie, :seventy_five_move_rule}
   end
 
   def fullmove_number(game = %Game{fullmove_number: fullmove_number}, expected_fullmove_number) do

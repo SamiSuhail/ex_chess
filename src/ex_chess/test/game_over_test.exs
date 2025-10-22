@@ -108,12 +108,32 @@ defmodule ExChessTest.GameOverTest do
     b1c3 b8c6
     c3b1 c6b8
     """)
+    |> Arrange.claim_draw()
     |> Assert.threefold_repetition()
+  end
+
+  test "fivefold repetition" do
+    Arrange.new_game()
+    |> Arrange.game_moves("""
+    b1c3 b8c6
+    c3b1 c6b8
+    b1c3 b8c6
+    c3b1 c6b8
+    b1c3 b8c6
+    c3b1 c6b8
+    b1c3 b8c6
+    c3b1 c6b8
+    """)
+    |> Assert.fivefold_repetition()
   end
 
   test "validation - cannot move if game completed" do
     Arrange.new_game()
     |> Arrange.game_moves("""
+    b1c3 b8c6
+    c3b1 c6b8
+    b1c3 b8c6
+    c3b1 c6b8
     b1c3 b8c6
     c3b1 c6b8
     b1c3 b8c6
@@ -127,6 +147,11 @@ defmodule ExChessTest.GameOverTest do
     fifty_move_rule_game()
     |> Arrange.claim_draw()
     |> Assert.fifty_move_rule()
+  end
+
+  test "75 move rule" do
+    seventy_five_move_rule_game()
+    |> Assert.seventy_five_move_rule()
   end
 
   test "validation - cannot claim draw before 50 move rule applies" do
@@ -212,6 +237,101 @@ defmodule ExChessTest.GameOverTest do
     a4a3 h5h6
     a3a2 h6h7
     a2a1 h7h8
+    """)
+  end
+
+  defp seventy_five_move_rule_game() do
+    Arrange.new_game()
+    |> Arrange.game_board("""
+         abcdefgh
+        ----------
+      8 |n      k| 8
+      7 |p       | 7
+      6 |        | 6
+      5 |        | 5
+      4 |        | 4
+      3 |        | 3
+      2 |       P| 2
+      1 |K      N| 1
+        ----------
+         abcdefgh
+    """)
+    |> Arrange.game_moves("""
+    a1b1 h8g8
+    b1c1 g8f8
+    c1d1 f8e8
+    d1e1 e8d8
+    e1f1 d8c8
+    f1g1 c8b8
+    g1g2 b8b7
+    g2h3 b7a6
+    h3h4 a6a5
+    h4h5 a5a4
+    h5h6 a4a3
+    h6h7 a3a2
+    h7h8 a2a1
+    h8g8 a1b1
+    g8f8 b1c1
+    f8e8 c1d1
+    e8d8 d1e1
+    d8c8 e1f1
+    c8b8 f1g1
+    b8b7 g1g2
+    b7a6 g2h3
+    a6a5 h3h4
+    a5a4 h4h5
+    a4a3 h5h6
+    a3a2 h6h7
+    a2a1 h7h8
+    a1b1 h8g8
+    b1c1 g8f8
+    c1d1 f8e8
+    d1e1 e8d8
+    e1f1 d8c8
+    f1g1 c8b8
+    g1g2 b8b7
+    g2h3 b7a6
+    h3h4 a6a5
+    h4h5 a5a4
+    h5h6 a4a3
+    h6h7 a3a2
+    h7h8 a2a1
+    h8g8 a1b1
+    g8f8 b1c1
+    f8e8 c1d1
+    e8d8 d1e1
+    d8c8 e1f1
+    c8b8 f1g1
+    b8b7 g1g2
+    b7a6 g2h3
+    a6a5 h3h4
+    a5a4 h4h5
+    a4a3 h5h6
+    a3a2 h6h7
+    a2a1 h7h8
+    a1b1 h8g8
+    b1c1 g8f8
+    c1d1 f8e8
+    d1e1 e8d8
+    e1f1 d8c8
+    f1g1 c8b8
+    g1g2 b8b7
+    g2h3 b7a6
+    h3h4 a6a5
+    h4h5 a5a4
+    h5h6 a4a3
+    h6h7 a3a2
+    h7h8 a2a1
+    h8g8 a1b1
+    g8f8 b1c1
+    f8e8 c1d1
+    e8d8 d1e1
+    d8c8 e1f1
+    c8b8 f1g1
+    b8b7 g1g2
+    b7a6 g2h3
+    a6a5 h3h4
+    a5a4 h4h5
     """)
   end
 end
