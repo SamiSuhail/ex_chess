@@ -1,8 +1,24 @@
 defmodule ExChess.Fen do
+  @moduledoc """
+  The functions in this module are used to parse game state to and from [Forsyth-Edwards Notation](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation).
+  """
+
   alias ExChess.{Game, Board, Square, Piece}
 
+  @typedoc """
+  The FEN string.
+  """
   @type t() :: binary()
 
+  @doc """
+  Returns a parsed FEN representation of the entire game state, except for repetition history which is not captured in FEN.
+
+  ## Examples
+
+      iex> ExChess.start_game()
+      ...> |> ExChess.Fen.from_game()
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+  """
   @spec from_game(Game.t()) :: t()
   def from_game(%Game{
         board: board,
@@ -15,10 +31,72 @@ defmodule ExChess.Fen do
     "#{from_board(board)} #{from_active_color(active_color)} #{from_castling_rights(castling_rights)} #{from_en_passant_file(en_passant_file, active_color)} #{halfmove_clock} #{fullmove_number}"
   end
 
+  @doc """
+  Returns a parsed FEN representation of the `board`.
+
+  ## Examples
+
+      iex> ExChess.Board.new()
+      ...> |> ExChess.Fen.from_board()
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+  """
+  @spec from_board(Board.t()) :: binary()
   def from_board(board) do
     7..0//-1
     |> Enum.map(&from_rank(&1, board))
     |> Enum.join("/")
+  end
+
+  @doc """
+  Returns a `ExChess.Game` struct parsed from the `fen` string.
+
+  ## Examples
+
+      iex> ExChess.Fen.to_game("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+      ...> |> ExChess.Visualization.game()
+      "STATUS: * | FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+  """
+  @spec to_game(t()) :: Game.t()
+  def to_game(fen) do
+    [
+      board_fen,
+      active_color_fen,
+      castling_rights_fen,
+      en_passant_square_fen,
+      halfmove_clock_fen,
+      fullmove_number_fen,
+    ] = String.split(fen, " ")
+
+    {halfmove_clock, _rest} = Integer.parse(halfmove_clock_fen)
+    {fullmove_number, _rest} = Integer.parse(fullmove_number_fen)
+
+    Game.new(
+      to_active_color(active_color_fen),
+      to_board(board_fen),
+      to_castling_rights(castling_rights_fen),
+      to_en_passant_file(en_passant_square_fen),
+      halfmove_clock,
+      fullmove_number
+    )
+  end
+
+  @doc """
+  Returns a `ExChess.Board` parsed from the `board_fen` string.
+
+  ## Examples
+
+      iex> ExChess.Fen.to_board("k7/8/8/8/8/8/8/K7")
+      %{%ExChess.Square{file: 0, rank: 0} => %ExChess.Piece{type: :k, color: :white}, %ExChess.Square{file: 0, rank: 7} => %ExChess.Piece{type: :k, color: :black}}
+  """
+  def to_board(board_fen) do
+    ranks = board_fen |> String.split("/")
+
+    ranks
+    |> Enum.reduce({Board.empty(), 7}, fn rank_fen, {board, rank} ->
+      updated_board = put_pieces(board, rank_fen, rank)
+      {updated_board, rank - 1}
+    end)
+    |> elem(0)
   end
 
   defp from_rank(rank, board) do
@@ -99,43 +177,8 @@ defmodule ExChess.Fen do
   defp from_file(6), do: "g"
   defp from_file(7), do: "h"
 
-  @spec to_game(t()) :: Game.t()
-  def to_game(fen) do
-    [
-      board_fen,
-      active_color_fen,
-      castling_rights_fen,
-      en_passant_square_fen,
-      halfmove_clock_fen,
-      fullmove_number_fen,
-    ] = String.split(fen, " ")
-
-    {halfmove_clock, _rest} = Integer.parse(halfmove_clock_fen)
-    {fullmove_number, _rest} = Integer.parse(fullmove_number_fen)
-
-    Game.new(
-      to_active_color(active_color_fen),
-      to_board(board_fen),
-      to_castling_rights(castling_rights_fen),
-      to_en_passant_file(en_passant_square_fen),
-      halfmove_clock,
-      fullmove_number
-    )
-  end
-
   defp to_active_color("w"), do: :white
   defp to_active_color("b"), do: :black
-
-  def to_board(board_fen) do
-    ranks = board_fen |> String.split("/")
-
-    ranks
-    |> Enum.reduce({Board.empty(), 7}, fn rank_fen, {board, rank} ->
-      updated_board = put_pieces(board, rank_fen, rank)
-      {updated_board, rank - 1}
-    end)
-    |> elem(0)
-  end
 
   defp put_pieces(board, rank_fen, rank) do
     rank_fen

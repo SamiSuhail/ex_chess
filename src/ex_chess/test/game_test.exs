@@ -4,6 +4,7 @@ defmodule ExChessTest.GameTest do
   doctest ExChess
   doctest ExChess.Game
   doctest ExChess.Visualization
+  doctest ExChess.Fen
   doctest ExChess.Board
   doctest ExChess.Move
   doctest ExChess.Square
