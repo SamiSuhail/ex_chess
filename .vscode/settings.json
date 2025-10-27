@@ -1,5 +1,5 @@
 {
     "elixirLS.mixEnv": "dev",
-    "elixirLS.projectDir": "src/ex_chess/",
+    "elixirLS.projectDir": "src/ex_chess_server/",
     "editor.formatOnSave": true
 }

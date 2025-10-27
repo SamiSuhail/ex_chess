@@ -8,7 +8,7 @@
       "type": "mix_task",
       "name": "mix (Default task)",
       "request": "launch",
-      "projectDir": "${workspaceRoot}/src/ex_chess"
+      "projectDir": "${workspaceRoot}/src/ex_chess_server"
     },
     {
       "type": "mix_task",
@@ -19,7 +19,7 @@
         "--trace"
       ],
       "startApps": true,
-      "projectDir": "${workspaceRoot}/src/ex_chess",
+      "projectDir": "${workspaceRoot}/src/ex_chess_server",
       "requireFiles": [
         "test/**/test_helper.exs",
         "test/**/*_test.exs"

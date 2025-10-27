@@ -1,0 +1,7 @@
+[
+  inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"],
+  plugins: [
+    FreedomFormatter,
+  ],
+  trailing_comma: true,
+]
