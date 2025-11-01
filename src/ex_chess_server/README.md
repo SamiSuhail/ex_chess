@@ -34,3 +34,27 @@ Notes:
 - Benchmarks
   - When making move get a diffcheck reply rather than full state (update downstream)
   - Partition supervisor
+
+
+Split `ExChess` into server vs client-side state to reduce message size -> only diff needs to be sent.
+  server:
+    status
+    active_color
+    board
+    en_passant_file
+    castling_rights
+    repetition_history
+    max_repetitions
+    halfmove_clock
+    fullmove_number
+    time
+    history
+
+  client:
+    diff:
+      board
+      draw_claimable?
+      active_color
+      fullmove_number
+      time
+      history
