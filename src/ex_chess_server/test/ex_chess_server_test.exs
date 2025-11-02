@@ -1,4 +1,5 @@
 defmodule ExChessServerTest do
+  alias ExChessServerTest.Arrange
   use ExUnit.Case
   doctest ExChessServer
 
