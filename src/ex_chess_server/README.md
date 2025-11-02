@@ -30,6 +30,7 @@ Notes:
 - Limit subscribers
 - Cleanup dead subscribers (monitor)
 - Autosubscribe on connect + unsubscribe on disconnect
+- Capture game server exits and persist state
 
 - Benchmarks
   - When making move get a diffcheck reply rather than full state (update downstream)
