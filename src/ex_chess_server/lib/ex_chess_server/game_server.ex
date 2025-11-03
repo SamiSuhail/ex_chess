@@ -28,8 +28,16 @@ defmodule ExChessServer.GameServer do
   @impl true
   def handle_call({:connect, color}, {player_pid, _}, state = %{}) do
     Process.monitor(player_pid)
-    updated_state = Map.put(state, player_pid, color)
-    publish_event({:player_connected, color})
+
+    event_type =
+      if Map.get(state, color) do
+        :player_reconnected
+      else
+        :player_connected
+      end
+
+    updated_state = Map.put(state, color, player_pid)
+    publish_event({event_type, color})
     {:reply, :ok, updated_state}
   end
 
@@ -58,8 +66,16 @@ defmodule ExChessServer.GameServer do
       ) do
     updated_subscribers = subscribers |> Enum.filter(fn pid -> pid != client_pid end)
     updated_state = Map.put(state, :subscribers, updated_subscribers)
-    color = Map.get(state, client_pid)
-    publish_event({:player_disconnected, color})
+
+    color =
+      cond do
+        Map.get(state, :white) == client_pid -> :white
+        Map.get(state, :black) == client_pid -> :black
+        true -> nil
+      end
+
+    color && publish_event({:player_disconnected, color})
+
     {:noreply, updated_state}
   end
 

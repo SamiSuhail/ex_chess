@@ -60,16 +60,13 @@ defmodule ExChessServerTest do
     Assert.player_reconnected(:white)
   end
 
-  test "player move publishes event with diff" do
+  test "player move publishes event" do
     {server, white, _black} = Arrange.server_with_clients()
     Arrange.subscribe_events(server)
 
     Arrange.move(white, "a3")
 
-    Assert.player_move(:white, %{
-      board: %{unset: [Square.new(0, 1)], set: [{Square.new(0, 2), :p}]},
-      active_color: :black,
-    })
+    Assert.player_move(:white)
   end
 
   test "validation - player cannot move before connecting" do

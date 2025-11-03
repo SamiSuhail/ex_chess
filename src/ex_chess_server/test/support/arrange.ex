@@ -41,6 +41,10 @@ defmodule ExChessServerTest.Assert do
     assert_receive {:player_disconnected, color}, 100
   end
 
+  def player_reconnected(color) do
+    assert_receive {:player_reconnected, color}, 100
+  end
+
   def subscribed(server_pid, client_pid) do
     %{subscribers: subscribers} = :sys.get_state(server_pid)
     assert client_pid in subscribers
