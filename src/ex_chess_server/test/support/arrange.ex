@@ -13,6 +13,13 @@ defmodule ExChessServerTest.Arrange do
     client_pid
   end
 
+  def server_with_clients() do
+    server = server()
+    white = connected_client(server, :white)
+    black = connected_client(server, :black)
+    {server, white, black}
+  end
+
   def subscribe_events(server_pid) do
     :ok = ExChessServer.subscribe_events(server_pid)
     server_pid
@@ -27,6 +34,11 @@ defmodule ExChessServerTest.Arrange do
     Process.flag(:trap_exit, true)
     Process.exit(client_pid, :kill)
     assert_receive {:EXIT, ^client_pid, _reason}
+  end
+
+  def move(client_pid, move) do
+    GenServer.call(client_pid, {:move, move})
+    client_pid
   end
 end
 
@@ -43,6 +55,10 @@ defmodule ExChessServerTest.Assert do
 
   def player_reconnected(color) do
     assert_receive {:player_reconnected, color}, 100
+  end
+
+  def player_move(color) do
+    assert_receive {:player_move, color}, 100
   end
 
   def subscribed(server_pid, client_pid) do
@@ -71,6 +87,10 @@ defmodule ExChessServerTest.Client do
     GenServer.call(client_pid, :subscribe)
   end
 
+  def move(client_pid, move) do
+    GenServer.call(client_pid, {:move, move})
+  end
+
   @impl true
   def init({server_pid, color}) do
     {:ok, %{server: server_pid, color: color}}
@@ -82,8 +102,15 @@ defmodule ExChessServerTest.Client do
     {:reply, result, state}
   end
 
+  @impl true
   def handle_call(:subscribe, _from, state = %{server: server_pid, color: color}) do
     result = ExChessServer.subscribe_events(server_pid)
+    {:reply, result, state}
+  end
+
+  @impl true
+  def handle_call({:move, move}, _from, state = %{server: server_pid, color: color}) do
+    result = ExChessServer.move(server_pid, color, move)
     {:reply, result, state}
   end
 end

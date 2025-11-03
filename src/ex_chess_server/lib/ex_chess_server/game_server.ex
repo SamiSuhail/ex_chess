@@ -20,6 +20,10 @@ defmodule ExChessServer.GameServer do
     GenServer.call(server_pid, :subscribe)
   end
 
+  def move(server_pid, color, move) do
+    GenServer.call(server_pid, {:move, color, move})
+  end
+
   @impl true
   def init(init_state) do
     {:ok, init_state || %{game: ExChess.start_game(), subscribers: []}}
@@ -49,6 +53,19 @@ defmodule ExChessServer.GameServer do
   end
 
   @impl true
+  def handle_call({:move, _color, move}, _from, state = %{game: game}) do
+    case ExChess.move(game, move) do
+      :error ->
+        {:reply, :error, state}
+
+      updated_game ->
+        publish_event({:player_move, move})
+        updated_state = Map.put(state, :game, updated_game)
+        {:reply, :ok, updated_state}
+    end
+  end
+
+  @impl true
   def handle_info(
         {:publish_event, event},
         state = %{subscribers: subscribers}
@@ -60,6 +77,7 @@ defmodule ExChessServer.GameServer do
     {:noreply, state}
   end
 
+  @impl true
   def handle_info(
         {:DOWN, _ref, :process, client_pid, _reason},
         state = %{subscribers: subscribers}

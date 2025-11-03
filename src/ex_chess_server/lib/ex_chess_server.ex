@@ -16,4 +16,9 @@ defmodule ExChessServer do
   def subscribe_events(server_pid) do
     GameServer.subscribe(server_pid)
   end
+
+  @spec move(pid(), Piece.color(), String.t()) :: :ok | :error
+  def move(server_pid, color, move) do
+    GameServer.move(server_pid, color, move)
+  end
 end
