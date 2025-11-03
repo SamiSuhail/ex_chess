@@ -13,8 +13,8 @@ defmodule ExChessServerTest do
 
   test "players connected" do
     server = Arrange.server()
-    white = Arrange.connect_client(server, :white)
-    black = Arrange.connect_client(server, :black)
+    white = Arrange.connected_client(server, :white)
+    black = Arrange.connected_client(server, :black)
 
     assert is_pid(white)
     assert white != self()
@@ -30,7 +30,7 @@ defmodule ExChessServerTest do
 
     Arrange.subscribe_events(server)
 
-    Arrange.connect_client(server, :white)
+    Arrange.connected_client(server, :white)
     |> Arrange.disconnect_client()
 
     assert_receive {:player_connected, :white}
@@ -47,8 +47,8 @@ defmodule ExChessServerTest do
 
   test "when player reconnects twice then all three client processes remain active and reconnect event is published" do
     {server, white_1, black} = Arrange.server_with_clients()
-    white_2 = Arrange.connect_client(server, :white)
-    white_3 = Arrange.connect_client(server, :white)
+    white_2 = Arrange.connected_client(server, :white)
+    white_3 = Arrange.connected_client(server, :white)
 
     assert Process.alive?(white_1)
     assert Process.alive?(white_2)
@@ -60,10 +60,10 @@ defmodule ExChessServerTest do
 
   test "when player reconnects more than twice, oldest process gets killed " do
     {server, white_1, black} = Arrange.server_with_clients()
-    white_2 = Arrange.connect_client(server, :white)
-    white_3 = Arrange.connect_client(server, :white)
-    white_4 = Arrange.connect_client(server, :white)
-    white_5 = Arrange.connect_client(server, :white)
+    white_2 = Arrange.connected_client(server, :white)
+    white_3 = Arrange.connected_client(server, :white)
+    white_4 = Arrange.connected_client(server, :white)
+    white_5 = Arrange.connected_client(server, :white)
 
     assert not Process.alive?(white_1)
     assert not Process.alive?(white_2)
@@ -81,7 +81,7 @@ defmodule ExChessServerTest do
 
   test "validation - player cannot move before connecting" do
     server = Arrange.server()
-    black = Arrange.connect_client(server, :black)
+    black = Arrange.connected_client(server, :black)
     white = Arrange.client(:white)
 
     Arrange.move(white, "a3", server)
