@@ -11,6 +11,28 @@ defmodule ExChessServerTest.Arrange do
     :ok = Client.connect(client_pid)
     client_pid
   end
+
+  def subscribe_events(server_pid) do
+    :ok = ExChessServer.subscribe_events(server_pid)
+    server_pid
+  end
+
+  def disconnect_client(client_pid) do
+    Process.flag(:trap_exit, true)
+    Process.exit(client_pid, :kill)
+  end
+end
+
+defmodule ExChessServerTest.Assert do
+  import ExUnit.Assertions
+
+  def player_connected(color) do
+    assert_receive {:player_connected, color}, 100
+  end
+
+  def player_disconnected(color) do
+    assert_receive {:player_disconnected, color}, 100
+  end
 end
 
 defmodule ExChessServerTest.Client do

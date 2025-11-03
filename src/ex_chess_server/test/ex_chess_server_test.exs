@@ -1,5 +1,5 @@
 defmodule ExChessServerTest do
-  alias ExChessServerTest.Arrange
+  alias ExChessServerTest.{Arrange, Assert}
   use ExUnit.Case
   doctest ExChessServer
 
@@ -29,12 +29,11 @@ defmodule ExChessServerTest do
     server = Arrange.server()
 
     Arrange.subscribe_events(server)
-
-    Arrange.connected_client(server, :white)
+    |> Arrange.connected_client(:white)
     |> Arrange.disconnect_client()
 
-    assert_receive {:player_connected, :white}
-    assert_receive {:player_disconnected, :white}
+    Assert.player_connected(:white)
+    Assert.player_disconnected(:white)
   end
 
   test "players autosubscribe to events" do
