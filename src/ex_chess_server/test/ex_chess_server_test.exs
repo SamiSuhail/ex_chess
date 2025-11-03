@@ -78,6 +78,14 @@ defmodule ExChessServerTest do
     |> Assert.error(:player_not_connected)
   end
 
+  test "validation - player cannot move before both players have connected" do
+    server = Arrange.server()
+    white = Arrange.connected_client(server, :white)
+
+    Arrange.move(white, "a3", server)
+    |> Assert.error(:waiting_for_opponent)
+  end
+
   test "validation - cannot play instead of opponent" do
     {server, _white, black} = Arrange.server_with_clients()
 
