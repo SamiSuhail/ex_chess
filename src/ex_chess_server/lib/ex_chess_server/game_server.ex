@@ -36,6 +36,7 @@ defmodule ExChessServer.GameServer do
   @impl true
   def handle_call(:subscribe, {subscriber_pid, _}, state = %{subscribers: subscriber_pids}) do
     updated_state = Map.put(state, :subscribers, [subscriber_pid | subscriber_pids])
+    Process.monitor(subscriber_pid)
     {:reply, :ok, updated_state}
   end
 

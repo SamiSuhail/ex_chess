@@ -36,6 +36,19 @@ defmodule ExChessServerTest do
     Assert.player_disconnected(:white)
   end
 
+  test "if subscriber exits it is no longer subscribed" do
+    server = Arrange.server()
+
+    white =
+      Arrange.connected_client(server, :white)
+      |> Arrange.subscribe_client()
+
+    Assert.subscribed(server, white)
+
+    Arrange.disconnect_client(white)
+    Assert.not_subscribed(server, white)
+  end
+
   test "when player reconnects event is published and old process remains alive" do
     server = Arrange.server()
     Arrange.subscribe_events(server)
