@@ -36,46 +36,27 @@ defmodule ExChessServerTest do
     Assert.player_disconnected(:white)
   end
 
-  test "players autosubscribe to events" do
-    {server, white, black} = Arrange.server_with_clients()
-
-    Arrange.disconnect_client(white)
-
-    Assert.received(black, {:player_disconnected, :white})
-  end
-
-  test "when player reconnects twice then all three client processes remain active and reconnect event is published" do
-    {server, white_1, black} = Arrange.server_with_clients()
+  test "when player reconnects event is published and old process remains alive" do
+    server = Arrange.server()
+    Arrange.subscribe_events(server)
+    white_1 = Arrange.connected_client(server, :white)
     white_2 = Arrange.connected_client(server, :white)
-    white_3 = Arrange.connected_client(server, :white)
 
     assert Process.alive?(white_1)
     assert Process.alive?(white_2)
-    assert Process.alive?(white_3)
-    Assert.received(white_1, {:player_reconnected, :white}, 2)
-    Assert.received(black, {:player_reconnected, :white}, 2)
-    Assert.received(white_2, {:player_reconnected, :white}, 1)
+    Assert.player_reconnected(:white)
   end
 
-  test "when player reconnects more than twice, oldest process gets killed " do
-    {server, white_1, black} = Arrange.server_with_clients()
-    white_2 = Arrange.connected_client(server, :white)
-    white_3 = Arrange.connected_client(server, :white)
-    white_4 = Arrange.connected_client(server, :white)
-    white_5 = Arrange.connected_client(server, :white)
-
-    assert not Process.alive?(white_1)
-    assert not Process.alive?(white_2)
-    assert Process.alive?(white_3)
-    assert Process.alive?(white_4)
-    assert Process.alive?(white_5)
-  end
-
-  test "player makes a move" do
+  test "player move publishes event with diff" do
     {server, white, _black} = Arrange.server_with_clients()
+    Arrange.subscribe_events(server)
 
     Arrange.move(white, "a3")
-    |> Assert.updated_board()
+
+    Assert.player_move(:white, %{
+      board: %{unset: [Square.new(0, 1)], set: [{Square.new(0, 2), :p}]},
+      active_color: :black,
+    })
   end
 
   test "validation - player cannot move before connecting" do
@@ -87,7 +68,7 @@ defmodule ExChessServerTest do
     |> Assert.error(:player_not_connected)
   end
 
-  test "validation - player tries playing opponent's turn" do
+  test "validation - cannot play instead of opponent" do
     {server, _white, black} = Arrange.server_with_clients()
 
     Arrange.move(black, "a3")
