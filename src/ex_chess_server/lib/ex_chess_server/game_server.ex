@@ -1,4 +1,5 @@
 defmodule ExChessServer.GameServer do
+  alias ExChess.{Game, Piece}
   use GenServer
 
   def child_spec(init_state) do
@@ -53,15 +54,31 @@ defmodule ExChessServer.GameServer do
   end
 
   @impl true
-  def handle_call({:move, _color, move}, _from, state = %{game: game}) do
-    case ExChess.move(game, move) do
-      :error ->
-        {:reply, :error, state}
+  def handle_call(
+        {:move, color, move},
+        {caller_pid, _},
+        state = %{game: game = %Game{active_color: active_color}}
+      ) do
+    cond do
+      color != active_color ->
+        {:reply, {:error, :opponent_turn}, state}
 
-      updated_game ->
-        publish_event({:player_move, move})
-        updated_state = Map.put(state, :game, updated_game)
-        {:reply, :ok, updated_state}
+      Map.get(state, color) != caller_pid ->
+        {:reply, {:error, :player_not_connected}, state}
+
+      not is_pid(Map.get(state, Piece.flip_color(color))) ->
+        {:reply, {:error, :waiting_for_opponent}, state}
+
+      true ->
+        case ExChess.move(game, move) do
+          :error ->
+            {:reply, :error, state}
+
+          updated_game ->
+            publish_event({:player_move, color})
+            updated_state = Map.put(state, :game, updated_game)
+            {:reply, :ok, updated_state}
+        end
     end
   end
 

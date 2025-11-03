@@ -71,10 +71,10 @@ defmodule ExChessServerTest do
 
   test "validation - player cannot move before connecting" do
     server = Arrange.server()
-    black = Arrange.connected_client(server, :black)
-    white = Arrange.client(:white)
+    Arrange.connected_client(server, :black)
+    white = Arrange.client(server, :white)
 
-    Arrange.move(white, "a3", server)
+    Arrange.move(white, "a3")
     |> Assert.error(:player_not_connected)
   end
 
@@ -82,12 +82,12 @@ defmodule ExChessServerTest do
     server = Arrange.server()
     white = Arrange.connected_client(server, :white)
 
-    Arrange.move(white, "a3", server)
+    Arrange.move(white, "a3")
     |> Assert.error(:waiting_for_opponent)
   end
 
   test "validation - cannot play instead of opponent" do
-    {server, _white, black} = Arrange.server_with_clients()
+    {_server, _white, black} = Arrange.server_with_clients()
 
     Arrange.move(black, "a3")
     |> Assert.error(:opponent_turn)
