@@ -69,6 +69,10 @@ defmodule ExChessServerTest.Assert do
     assert_receive {:player_move, ^color}, 100
   end
 
+  def no_event() do
+    refute_receive _msg, 100
+  end
+
   def subscribed(server_pid, client_pid) do
     %{subscribers: subscribers} = :sys.get_state(server_pid)
     assert client_pid in subscribers
