@@ -1,5 +1,5 @@
 defmodule ExChessServer do
-  alias ExChess.Piece
+  alias ExChess.{Move, Piece}
   alias ExChessServer.{GameSupervisor, GameServer}
 
   @spec start() :: {:ok, pid()}
@@ -17,7 +17,7 @@ defmodule ExChessServer do
     GameServer.subscribe(server_pid)
   end
 
-  @spec move(pid(), Piece.color(), String.t()) :: :ok | :error
+  @spec move(pid(), Piece.color(), Move.t() | binary()) :: :ok | :error
   def move(server_pid, color, move) do
     GameServer.move(server_pid, color, move)
   end
