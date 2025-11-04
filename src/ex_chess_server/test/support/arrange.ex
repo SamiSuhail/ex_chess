@@ -7,6 +7,11 @@ defmodule ExChessServerTest.Arrange do
     pid
   end
 
+  def stop_server(server_pid) do
+    :ok = ExChessServer.stop(server_pid)
+    refute Process.alive?(server_pid)
+  end
+
   def client(server_pid, color) do
     {:ok, client_pid} = Client.start_link(server_pid, color)
     client_pid
@@ -69,6 +74,10 @@ defmodule ExChessServerTest.Assert do
     assert_receive {:player_move, ^color}, 100
   end
 
+  def server_shutdown() do
+    assert_receive :server_shutdown, 100
+  end
+
   def no_event() do
     refute_receive _msg, 100
   end
@@ -80,7 +89,7 @@ defmodule ExChessServerTest.Assert do
 
   def not_subscribed(server_pid, client_pid) do
     %{subscribers: subscribers} = :sys.get_state(server_pid)
-    assert client_pid not in subscribers
+    refute client_pid in subscribers
   end
 end
 

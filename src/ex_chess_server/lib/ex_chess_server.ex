@@ -21,4 +21,9 @@ defmodule ExChessServer do
   def move(server_pid, color, move) do
     GameServer.move(server_pid, color, move)
   end
+
+  @spec stop(pid()) :: :ok
+  def stop(server_pid) do
+    GenServer.stop(server_pid, :shutdown)
+  end
 end

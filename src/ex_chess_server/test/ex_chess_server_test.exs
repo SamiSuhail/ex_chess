@@ -104,4 +104,14 @@ defmodule ExChessServerTest do
 
     Assert.no_event()
   end
+
+  test "shutdown stops server and publishes event to subscribers" do
+    server = Arrange.server()
+    Arrange.subscribe_events(server)
+
+    Arrange.stop_server(server)
+
+    Assert.server_shutdown()
+    refute Process.alive?(server)
+  end
 end

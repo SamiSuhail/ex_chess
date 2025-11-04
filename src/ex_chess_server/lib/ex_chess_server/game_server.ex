@@ -87,10 +87,7 @@ defmodule ExChessServer.GameServer do
         {:publish_event, event},
         state = %{subscribers: subscribers}
       ) do
-    for subscriber <- subscribers do
-      send(subscriber, event)
-    end
-
+    send_messages(subscribers, event)
     {:noreply, state}
   end
 
@@ -112,6 +109,18 @@ defmodule ExChessServer.GameServer do
     color && publish_event({:player_disconnected, color})
 
     {:noreply, updated_state}
+  end
+
+  @impl true
+  def terminate(:shutdown, %{subscribers: subscribers}) do
+    send_messages(subscribers, :server_shutdown)
+    :ok
+  end
+
+  defp send_messages(subscribers, message) do
+    for subscriber <- subscribers do
+      send(subscriber, message)
+    end
   end
 
   defp publish_event(event), do: send(self(), {:publish_event, event})
