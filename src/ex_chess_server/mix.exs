@@ -45,7 +45,7 @@ defmodule ExChessServer.MixProject do
   defp deps do
     [
       {:freedom_formatter, ">= 2.0.0", only: :dev},
-      {:ex_chess, "~> 0.1.0"},
+      {:ex_chess, "~> 0.2.0"},
     ]
   end
 end

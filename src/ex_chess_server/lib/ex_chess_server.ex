@@ -1,5 +1,5 @@
 defmodule ExChessServer do
-  alias ExChess.{Move, Piece}
+  alias ExChess.{Player, Move, Piece}
   alias ExChessServer.{GameSupervisor, GameServer}
 
   @spec start() :: {:ok, pid()}
@@ -7,7 +7,7 @@ defmodule ExChessServer do
     GameSupervisor.start_child()
   end
 
-  @spec connect(pid(), Piece.color()) :: :ok
+  @spec connect(pid(), Piece.color()) :: Player.t()
   def connect(server_pid, color) do
     GameServer.connect(server_pid, color)
   end
@@ -17,7 +17,7 @@ defmodule ExChessServer do
     GameServer.subscribe(server_pid)
   end
 
-  @spec move(pid(), Piece.color(), Move.t() | binary()) :: :ok | :error
+  @spec move(pid(), Piece.color(), Move.t() | binary()) :: {:ok, Player.diff()} | :error
   def move(server_pid, color, move) do
     GameServer.move(server_pid, color, move)
   end

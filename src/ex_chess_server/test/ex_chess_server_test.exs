@@ -66,7 +66,7 @@ defmodule ExChessServerTest do
 
     Arrange.move(white, "a3")
 
-    Assert.player_move(:white)
+    Assert.player_move()
   end
 
   test "validation - player cannot move before connecting" do

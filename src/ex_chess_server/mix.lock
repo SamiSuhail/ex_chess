@@ -1,4 +1,4 @@
 %{
-  "ex_chess": {:hex, :ex_chess, "0.1.0", "9f4316308184b6d6c15cae9b80ee7dfcf3237ea5326b37641a169fa6f3923898", [:mix], [], "hexpm", "014f76d449ea87c9fbc5c9e4999063469ccbdffcd3f2e8cdad0c65d856f87e6d"},
+  "ex_chess": {:hex, :ex_chess, "0.2.0", "0c919bcc6d1c6331a3126bbe4dcd1b35298bf8d78bcafa1e7ec19fafcbb52737", [:mix], [], "hexpm", "2eb6ee759a377fe8785954d539d22f8cf8415d24ea28ba9fb8db871eafbdf2cc"},
   "freedom_formatter": {:hex, :freedom_formatter, "2.1.3", "2be47e85e4aaf4bd5b5a918af872a1e2067483f65dc2c0179c0d3f6662bceab6", [:mix], [], "hexpm", "ec0037991494514a8ec8a78450d980f5ec39ae3620fbb6a17b0a7edf538cbaa0"},
 }

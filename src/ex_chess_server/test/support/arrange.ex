@@ -19,7 +19,7 @@ defmodule ExChessServerTest.Arrange do
 
   def connected_client(server_pid, color) do
     {:ok, client_pid} = Client.start_link(server_pid, color)
-    :ok = Client.connect(client_pid)
+    _player = Client.connect(client_pid)
     client_pid
   end
 
@@ -70,8 +70,8 @@ defmodule ExChessServerTest.Assert do
     assert_receive {:player_reconnected, ^color}, 100
   end
 
-  def player_move(color) do
-    assert_receive {:player_move, ^color}, 100
+  def player_move() do
+    assert_receive {:player_move, %{}}, 100
   end
 
   def server_shutdown() do
@@ -114,13 +114,13 @@ defmodule ExChessServerTest.Client do
 
   @impl true
   def init({server_pid, color}) do
-    {:ok, %{server: server_pid, color: color}}
+    {:ok, %{server: server_pid, color: color, player: nil}}
   end
 
   @impl true
   def handle_call(:connect, _from, state = %{server: server_pid, color: color}) do
-    result = ExChessServer.connect(server_pid, color)
-    {:reply, result, state}
+    player = ExChessServer.connect(server_pid, color)
+    {:reply, player, Map.put(state, :player, player)}
   end
 
   @impl true
@@ -130,8 +130,19 @@ defmodule ExChessServerTest.Client do
   end
 
   @impl true
-  def handle_call({:move, move}, _from, state = %{server: server_pid, color: color}) do
+  def handle_call(
+        {:move, move},
+        _from,
+        state = %{server: server_pid, color: color, player: player}
+      ) do
     result = ExChessServer.move(server_pid, color, move)
+
+    state =
+      case result do
+        {:ok, diff} -> Map.put(state, :player, ExChess.Player.apply_diff(player, diff))
+        _error -> state
+      end
+
     {:reply, result, state}
   end
 end
