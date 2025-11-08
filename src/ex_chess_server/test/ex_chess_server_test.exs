@@ -49,23 +49,28 @@ defmodule ExChessServerTest do
     Assert.not_subscribed(server, white)
   end
 
-  test "when player reconnects event is published and old process remains alive" do
-    server = Arrange.server()
-    Arrange.subscribe_events(server)
-    white_1 = Arrange.connected_client(server, :white)
-    white_2 = Arrange.connected_client(server, :white)
-
-    assert Process.alive?(white_1)
-    assert Process.alive?(white_2)
-    Assert.player_reconnected(:white)
-  end
-
   test "player move publishes event" do
     {server, white, _black} = Arrange.server_with_clients()
     Arrange.subscribe_events(server)
 
     Arrange.move(white, "a3")
 
+    Assert.player_move()
+  end
+
+  test "when player reconnects event is published and old process remains alive but cannot perform moves" do
+    {server, white_1, _black} = Arrange.server_with_clients()
+    Arrange.subscribe_events(server)
+    white_2 = Arrange.connected_client(server, :white)
+
+    Arrange.move(white_1, "a3")
+    |> Assert.error(:player_not_connected)
+
+    Arrange.move(white_2, "a3")
+
+    assert Process.alive?(white_1)
+    assert Process.alive?(white_2)
+    Assert.player_reconnected(:white)
     Assert.player_move()
   end
 
