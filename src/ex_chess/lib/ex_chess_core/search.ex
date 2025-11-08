@@ -33,9 +33,12 @@ defmodule ExChessCore.Search do
     |> Stream.map(fn target_square ->
       move = Move.new(square, target_square)
 
-      MoveContext.new(game, move)
-      |> MoveEvaluation.run()
-      |> GameManager.updated()
+      case MoveContext.new(game, move)
+           |> MoveEvaluation.run()
+           |> GameManager.updated() do
+        :error -> :error
+        {updated_game, _player_diff} -> updated_game
+      end
     end)
     |> Stream.filter(fn result -> result != :error end)
   end

@@ -1,5 +1,5 @@
 defmodule ExChessCore.MoveContext do
-  alias ExChess.{Game, Board, Move, Square, Piece}
+  alias ExChess.{Game, Player, Board, Move, Square, Piece}
 
   @type move_type_king_special() :: :castle_kingside | :castle_queenside
   @type move_type_pawn_special() :: :en_passant
@@ -35,6 +35,7 @@ defmodule ExChessCore.MoveContext do
           target_piece: nil | Piece.type(),
           move_type: nil | move_type(),
           updated_board: nil | Board.t(),
+          board_diff: nil | Player.board_diff(),
         }
 
   # required keys are based on the minimum number of fields needed to validate if the king is under attack
@@ -67,6 +68,7 @@ defmodule ExChessCore.MoveContext do
     :target_piece,
     :move_type,
     :updated_board,
+    :board_diff,
   ]
 
   def new(

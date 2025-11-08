@@ -46,7 +46,7 @@ defmodule ExChess do
     San
   }
 
-  alias ExChess.{Fen, Game, Board, Move, Square, Piece}
+  alias ExChess.{Fen, Game, Player, Board, Move, Square, Piece}
 
   @doc """
   Instantiates a new `ExChess.Game`. An optional `fen` string can be passed in to start the game at a particular position.
@@ -106,19 +106,57 @@ defmodule ExChess do
       :error
   """
   @spec move(Game.t(), Move.t() | San.t()) :: Game.t() | :error
-  def move(game, move) when is_binary(move) do
-    case San.parse_move(game, move) do
-      :error -> :error
-      {:ok, parsed_move} -> move(game, parsed_move)
-    end
-  end
-
   def move(%Game{status: game_status}, _move) when game_status != :continue, do: :error
 
   def move(
         game = %Game{},
-        move = %Move{}
+        move
       ) do
+    case move_internal(game, move) do
+      {updated_game, _player_diff} -> updated_game
+      :error -> :error
+    end
+  end
+
+  @doc """
+  Returns a tuple of the updated `ExChess.Game` and the `ExChess.Player.diff()` representing the changes made to the player's state when the move is valid, and `:error` otherwise.
+
+  Please refer to `ExChess.move/2` for more information and examples regarding the move functionality.
+
+  The second element of the returned tuple contains the differences in the board and draw claimable status after the move has been made.
+  It can be used together with `ExChess.Player.apply_diff/2` to efficiently update the player's view of the game state without needing to reconstruct or send the entire state from scratch.
+
+  ## Examples
+
+      iex> game = ExChess.start_game()
+      iex> player = ExChess.Player.new(game)
+      iex> {updated_game, player_diff} = ExChess.move_and_diff(game, "Nf3")
+      iex> updated_player = ExChess.Player.apply_diff(player, player_diff)
+      iex> updated_game.board == updated_player.board
+      true
+      iex> updated_game.active_color == updated_player.active_color
+      true
+      iex> updated_game.fullmove_number == updated_player.fullmove_number
+      true
+      iex> ExChess.Player.draw_claimable?(updated_game.halfmove_clock, updated_game.max_repetitions) == updated_player.draw_claimable?
+      true
+  """
+  @spec move_and_diff(Game.t(), Move.t() | San.t()) :: {Game.t(), Player.diff()} | :error
+  def move_and_diff(
+        game = %Game{},
+        move
+      ) do
+    move_internal(game, move)
+  end
+
+  defp move_internal(game, move) when is_binary(move) do
+    case San.parse_move(game, move) do
+      :error -> :error
+      {:ok, parsed_move = %Move{}} -> move_internal(game, parsed_move)
+    end
+  end
+
+  defp move_internal(game, move = %Move{}) do
     MoveContext.new(game, move)
     |> MoveEvaluation.run()
     |> GameManager.updated()

@@ -1,8 +1,8 @@
 defmodule ExChessCore.State.GameManager do
-  alias ExChess.{Game, Board, Square, Piece}
+  alias ExChess.{Game, Player, Board, Square, Piece}
   alias ExChessCore.{MoveContext, MoveGeneration, PieceRules}
 
-  @spec updated(MoveContext.t()) :: Game.t() | :error
+  @spec updated(MoveContext.t()) :: {Game.t(), Player.diff()} | :error
   def updated(%MoveContext{valid?: false}), do: :error
 
   def updated(
@@ -10,6 +10,7 @@ defmodule ExChessCore.State.GameManager do
           color: color,
           enemy_color: enemy_color,
           updated_board: updated_board,
+          board_diff: board_diff,
           piece: piece,
           target_piece: target_piece,
           halfmove_clock: halfmove_clock,
@@ -36,16 +37,26 @@ defmodule ExChessCore.State.GameManager do
     updated_max_repetitions =
       if max_repetitions > repetitions_count, do: max_repetitions, else: repetitions_count
 
-    %Game{
-      active_color: enemy_color,
-      status: game_status(move_context, updated_max_repetitions, updated_halfmove_clock),
-      board: updated_board,
-      en_passant_file: updated_en_passant_file,
-      castling_rights: updated_castling_rights,
-      repetition_history: updated_repetition_history,
-      halfmove_clock: updated_halfmove_clock,
-      fullmove_number: updated_fullmove_number,
-      max_repetitions: updated_max_repetitions,
+    draw_claimable? = Player.draw_claimable?(updated_halfmove_clock, updated_max_repetitions)
+
+    player_diff = %{
+      board: board_diff,
+      draw_claimable?: draw_claimable?,
+    }
+
+    {
+      %Game{
+        active_color: enemy_color,
+        status: game_status(move_context, updated_max_repetitions, updated_halfmove_clock),
+        board: updated_board,
+        en_passant_file: updated_en_passant_file,
+        castling_rights: updated_castling_rights,
+        repetition_history: updated_repetition_history,
+        halfmove_clock: updated_halfmove_clock,
+        fullmove_number: updated_fullmove_number,
+        max_repetitions: updated_max_repetitions,
+      },
+      player_diff
     }
   end
 
